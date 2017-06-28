@@ -1,0 +1,28 @@
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>Dialog AMD CMD Test</title>
+	<script type="text/javascript">
+		var _Qma = {
+			alias :{
+				main 	: 'script/main',
+				dialog 	: 'v1/dialog',
+				query 	: 'http://js.letvcdn.com/lc06_lecloud/201611/28/17/05/jquery-1.11.3.js'
+			},
+			depends : {
+				query : {
+					exports : '$'
+				}
+			}
+		}
+	</script>
+</head>
+<body>
+	<script src="../runjs/runjs.js">
+		var dialog = require( 'dialog' );
+		dialog.show( 'Hellow JS!', function( id ){
+			console.log( id, this )
+		} )
+	</script>
+</body>
+</html>

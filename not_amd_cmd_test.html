@@ -1,0 +1,24 @@
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>Dialog 非 AMD CMD Test</title>
+	<script src="http://js.letvcdn.com/lc06_lecloud/201611/28/17/05/jquery-1.11.3.js"></script>
+	<script type="text/javascript">
+		/**
+		 * 非 AMD 和 CMD 加载的环境需要实现require函数
+		 * @return {Query} 内部依赖类似jQuery类库的Query库
+		 */
+		function require(){
+			return $
+		}
+	</script>
+	<script src="v1/dialog.js"></script>
+</head>
+<body>
+	<script type="text/javascript">
+		dialog.show( 'Hellow JS!', function( id ){
+			console.log( id, this )
+		} )
+	</script>
+</body>
+</html>
