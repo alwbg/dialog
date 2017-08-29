@@ -1,6 +1,6 @@
 /**
  * @autor alwbg@163.com | soei
- * creation-time : 2017-06-27 23:38:18 PM
+ * creation-time : 2017-08-29 16:48:29 PM
  */
 ;(function( global, factory ){
 	global[ 'global' ] = global; 
@@ -22,7 +22,7 @@
 }( this, function( require, exports, module ) {
 
 	var Q 			= require( 'query' );
-	var ResizeList 	= {};
+	var Dialogs 	= {};
 	var Count 		= 0;
 	var htmls 		= '<div class="windows"><div class="content" ></div><div class="bg" ></div></div>';
 
@@ -32,6 +32,8 @@
 	var fixed 		= isNotFixed ? 'absolute' : 'fixed';
 
 	var ddoc 		= document.documentElement
+	var body 		= Q( ddoc );
+	var overflow    = body.css( 'overflow' );
 	/**
 	 * 设置居中
 	 */
@@ -54,18 +56,22 @@
 		}
 	}
 	function ReSize( O ) {
+
+		for( var i = 0, length = O.callback.length; i < length; i++ ){
+			O.callback[ i ] instanceof Function && O.callback[i]( O );
+		}
 		var css     = setCenter( O.room );
 		css.left    = css.top   = 0;
 		O.bg.css( css );
 	};
-	var cList = [];
+	var DialogsRanks = [];
 	function showbox( mode, fx ) {
-		var args 	= Array.apply( null, arguments );
-		var fn 		= args.shift();
+		var args 		= Array.apply( null, arguments );
+		var callback 	= args.shift();
 		var Md;
-		if ( !( fn instanceof Function ) ) {
-			Md = fn;
-			fn = args.shift() || function() {};
+		if ( !( callback instanceof Function ) ) {
+			Md = callback;
+			callback = args.shift() || function() {};
 		}
 		//创建容器
 		var ID 			= 'dialog-' + ( +new Date );
@@ -75,9 +81,7 @@
 		var bg 			= root.find( '>.bg' );
 
 		room.html( Md );
-		var body 		= Q( document.documentElement );
-		var overflow    = body.css( 'overflow' );
-		isNotFixed && body.css( { 'overflow': 'hidden' } );
+		/*isNotFixed && */body.css( { 'overflow': 'hidden' } );
 		//bg.css( { 'opacity' : .5, 'backgroundColor' : '#000' } );
 		var css 		= {};
 		css.position 	= fixed;
@@ -87,51 +91,51 @@
 		css.zIndex 		= 100
 		root.css( css ).appendTo( 'body' );
 		Count ++;
-		ResizeList[ ID ] = {
-			id      : ID,
-			root    : root,
-			room    : room,
-			bg      : bg,
-			remove : function(){
+		Dialogs[ ID ] = {
+			id      	: ID,
+			root    	: root,
+			room    	: room,
+			bg      	: bg,
+			callback	:[],
+			center 		: setCenter,
+			remove 	: function(){
 				current()
 			},
-			center : setCenter,
-			glass : function( show ){
+			glass 	: function( show ){
 				this.root.attr( 'is-blur', +show );
 				Q( 'body' )[ show ? 'addClass' : 'removeClass']( 'blur' );
 			},
-			resize : function(){
+			resize 	: function(){
 				ReSize( this );
 			}
 		}
-		cList.push( ResizeList[ ID ] );
-		fn.call( ResizeList, ID );
-		ReSize( ResizeList[ ID ] );
-		room.animate( { top : '-=10', opacity : 1}, 10 )
-		//setCenter( room );
+		DialogsRanks.push( Dialogs[ ID ] );
+		callback.call( Dialogs, ID );
+		ReSize( Dialogs[ ID ] );
+		room.css( {top : '+=10' } ).animate( { top : '-=10', opacity : 1}, 10 );
 		return root;
 	}
 	//移除当前窗口
 	function current(){
-		var curr = cList.pop();
+		var curr = DialogsRanks.pop();
 		if( curr ){
 			curr.bg.stop( true ).animate({ opacity : .1 }, 10 );
 			curr.room.stop( true ).animate({ top : '-=30px', opacity : .5 }, 10,function(){
 				var dialog = curr.root;
 				Count -- ;
 				dialog.remove();
-				delete ResizeList[ curr.id ];
-				//console.log(ResizeList)
+				delete Dialogs[ curr.id ];
+				//console.log(Dialogs)
 				if( Count <= 0 )
-					isNotFixed && body.css( { 'overflow': overflow } );
+					/*isNotFixed && */body.css( { 'overflow': overflow } );
 				+curr.root.attr( 'is-blur' ) && curr.glass();
 			})
 		}
 	}
 	Q( window ).resize( function(){
 		var css, O;
-		for( var i in ResizeList ){
-			ReSize( ResizeList[ i ] )
+		for( var i in Dialogs ){
+			ReSize( Dialogs[ i ] )
 		}
 	} ).keydown(  function( e ){
 		if( e.keyCode == 27 ) current();
@@ -140,7 +144,7 @@
 	var msg = {
 		showBox : showbox,
 		show    : showbox,
-		list    : ResizeList,
+		list    : Dialogs,
 		'remove' : function(  ){
 			current()
 		},
