@@ -2,6 +2,25 @@
 <head>
 	<meta charset="utf-8" />
 	<title>Dialog AMD CMD Test</title>
+	<style>
+		body{
+			background-color: none
+		}
+		.windows{
+			color:#fff
+		}
+		.windows .bg{
+			/*background-color: green;*/
+			opacity: .5
+		}
+		.windows .content{
+			background-color: green;
+			padding:10px;
+			padding-left: 30px;
+			padding-right: 30px; 
+			border-radius: 10px
+		}
+	</style>
 	<script type="text/javascript">
 		var _Qma = {
 			alias :{
@@ -20,9 +39,14 @@
 <body>
 	<script src="../runjs/runjs.js">
 		var dialog = require( 'dialog' );
-		dialog.show( 'Hellow JS!', function( id ){
+		var position = ['center', 'left top', 'left bottom', 'right top', 'right bottom', 'center top', 'center bottom'];
+		var p = position[ ((Math.random() * 100000) >> 0) % position.length ];
+		dialog.show( 'Hellow JS!', function( id, self ){
+			self.callback.push( function(){
+				console.log( id )
+			} )
 			console.log( id, this )
-		} )
+		}, 3, p )
 	</script>
 </body>
 </html>
