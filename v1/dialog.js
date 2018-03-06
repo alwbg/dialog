@@ -3,14 +3,14 @@
  * -----------------------------------
  * - https://github.com/alwbg/dialog -
  * -----------------------------------
- * creation-time : 2017-09-08 10:32:48 AM
+ * creation-time : 2018-03-06 15:40:08 PM
  * 提供弹窗,提示[左上,上中,右上,右下,下中,左下,中]位置显示,xx秒自动关闭功能
  * 支持全局和 AMD和CMD调用
  */
 ;(function( global, factory ){
 	global[ 'global' ] = global;
 	if( typeof exports === 'object' ) {
-		//factory( require, exports, module );
+		// factory( require, exports, module );
 	} else if (typeof define === 'function') {
 		//AMD CMD
 		define( 'dialog', factory );
@@ -18,12 +18,14 @@
 		var funcName = 'require';
 		if( funcName && !global[ funcName ] ) {
 			global[ funcName ] = function( id ) {
-				alert( '需要实现 require(),加载模块:"' + id + '"' );
+				return global[id];
 			};
 		};
-		var module = { exports : {} };
-		factory( global[ funcName ] || new Function, module.exports, module );
-		global['dialog'] = module.exports;
+		var MODULE = { exports : {} };
+		factory( global[ funcName ] || function( id ) {
+			alert( '需要实现 require(),加载模块:"' + id + '"' );
+		}, MODULE.exports, MODULE );
+		global['dialog'] = MODULE.exports;
 	}
 }( this, function( require, exports, module ) {
 
@@ -31,11 +33,15 @@
 	var Dialogs 		= {};
 	var DialogsRanks 	= [];
 	var Count 			= 0;
+
+	var SPLIT_SEP 		= /\s*;\s*/;
+	var SPLIT_KV		= /\s*:\s*/;
+	var SPACE 			= '';
 	var htmls 			= '<div class="windows"><div class="content" ></div><div class="bg" ></div></div>';
 
 	var confirmHtml 	= '<div class="confirm">'+
-	'	<div class="title">标题</div><div class="content">内容</div>'+
-	'	<span class="cancel">取消</span><span class="submit">确定</span>'+
+	'	<div class="confirm-title">标题</div><div class="confirm-content">内容</div>'+
+	'	<span class="confirm-cancel">取消</span><span class="confirm-submit">确定</span>'+
 	'</div>';
 	var isNotFixed 		= /ie\s*(6|5)/ig.test( navigator.userAgent );
 	//var isBlur      	= /(?:trident\/\d*.*rv[^\w]*\d*|msie\s*(?:7|8|9|10)|webkit)/i.test( navigator.userAgent );
@@ -93,12 +99,13 @@
 		this.id 		= ID++;
 		this._resize_ 	= [];
 		this._close_ 	= [];
+		this.offset 	= {};
 		//窗口关联, 当主窗口关闭时,先调用link对应的窗口remove方法后在执行当前remove
 		this.link 		= null;
 		Dialogs[ this.id ] = this;
 		DialogsRanks.push( this );
 
-		$runer( this.callback, Dialogs, this.id, this );
+		this.isOwnSetting = $runer( this.callback, Dialogs, this.id, this );
 	}
 	Dialog.prototype = {
 		tips 		: module.exports.tips,
@@ -142,40 +149,41 @@
 		runer 		: $runer
 	};
 	var $Map = {
-		'left top' : function() {
+		'left top' : function( box, position ) {
 			return {
-				left 	: 0,
-				top 	: 0
+				left 	: position.left >> 0,
+				top 	: position.top >> 0
 			};
 		},
-		'center top' : function( box ) {
+		'center top' : function( box, position ) {
 			return {
-				top 	: 0,
+				top 	: position.top >> 0,
 				left 	: ( SCREEN.width - box.width ) / 2
 			};
 		},
-		'center bottom' : function( box ) {
+		'center bottom' : function( box, position ) {
 			return {
-				top 	: SCREEN.height - box.height,
+				top 	: SCREEN.height - box.height - (position.bottom >> 0),
 				left 	: ( SCREEN.width - box.width ) / 2
 			};
 		},
-		'right top' : function( box ) {
+		'right top' : function( box, position ) {
 			return {
-				top 	: 0,
-				left 	: SCREEN.width - box.width
+				top 	: position.top >> 0,
+				//left 	: SCREEN.width - box.width - (position.right >> 0)
+				right 	: 0
 			};
 		},
-		'right bottom' : function( box ) {
+		'right bottom' : function( box, position ) {
 			return {
-				top 	: SCREEN.height - box.height,
-				left 	: SCREEN.width - box.width
+				top 	: SCREEN.height - box.height - (position.bottom >> 0),
+				left 	: SCREEN.width - box.width - (position.right >> 0)
 			};
 		},
-		'left bottom' : function( box ) {
+		'left bottom' : function( box, position ) {
 			return {
-				top 	: SCREEN.height - box.height,
-				left 	: 0
+				top 	: SCREEN.height - box.height - ( position.bottom >> 0 ),
+				left 	: position.left >> 0
 			};
 		},
 		center : function( box ) {
@@ -188,24 +196,24 @@
 	/**
 	 * 设置居中
 	 */
-	function $center( id, position ) {
+	function $center( id, position, dia ) {
 		var dialog 	= Q( id );
 
 		var func = $Map[ position ];
 		if( !( func instanceof Function ) ) {
 			func = $Map.center;
 		};
-		var css 		= func( $pickWidthHeight( dialog.room || dialog ) );
+		var css 		= dia.isOwnSetting ? {} : func( $pickWidthHeight( dialog.room || dialog ), (dia||{}).offset || {} );
 		css.zIndex 		= 10;
 		css.position 	= fixed;
 		dialog.css( css );
 		return SCREEN;
 	}
-	function $resize( O ) {
-		$runer( O._resize_, O );
-		var css     = $center( O.room, O.position );
+	function $resize( dia ) {
+		$runer( dia._resize_, dia );
+		var css     = $center( dia.room, dia.position, dia );
 		css.left    = css.top   = 0;
-		O.bg.css( css );
+		dia.bg.css( css );
 	};
 	/**
 	 * 显示Dialog
@@ -249,8 +257,10 @@
 			timeout 	: time
 		});
 		root.attr( {id : dialog.id} );
-		dialog.resize().timer();
-		room.css( { top : '+=10' } ).animate( { top : '-=10', opacity : 1 }, 400 );
+		if( ! dialog.isOwnSetting ){
+			dialog.resize().timer();
+			room.css( { top : '+=10' } ).animate( { top : '-=10', opacity : 1 }, 400 );
+		}
 		return dialog;
 	};
 	//移除当前窗口
@@ -270,8 +280,8 @@
 		}
 		if( curr ) {
 			curr.cleartime();
-			curr.bg.stop( true ).animate( { opacity : .1 }, 10 );
-			curr.room.stop( true ).animate({ top : '-=30px', opacity : .5 }, 400, function() {
+			curr.bg.stop( true, true ).animate( { opacity : .1 }, 10 );
+			curr.room.stop( true, true ).animate({ top : '-=30px', opacity : .5 }, 400, function() {
 				curr.destroy();
 			});
 		};
@@ -285,7 +295,30 @@
 		if( e.keyCode === 27 ) $current();
 	} );
 
-	var msg = {
+	var $autoRank = ['offset', 'max', 'min'];
+	var $autoMap = {
+		offset : function(l, t, r, b){
+			this.top 	= t >> 0;
+			this.left 	= l >> 0;
+			this.width 	= SCREEN.width - this.left - (r >> 0);
+			this.height = SCREEN.height - this.top - (b >> 0);
+		}
+	}
+	function $autoToMap( css, list ){
+		!css && (css = {});
+		var kv, k, v, vs, fx;
+		for( var i = 0, len = list.length; i < len; i++ ){
+			kv = list[ i ].split( SPLIT_KV );
+			k = kv[ 0 ];
+			v = kv[ 1 ] || SPACE;
+			if( (vs = v.split( /\s+/ )).length > 1 ){
+				css[ k ] = vs;
+			}
+		}
+		return css;
+	}
+
+	var $export = {
 		'showBox' 	: $showbox,
 		'show'    	: $showbox,
 		'list'    	: Dialogs,
@@ -296,29 +329,65 @@
 		'confirm' : function( title, content, callback ) {
 			return $showbox( confirmHtml, function( id, dialog ) {
 				var room = dialog.room;
-				room.find( '.title' ).html( title );
-				room.find( '.content' ).html( content );
-				room.find( '.submit' ).click( function( e ) {
-					if( ( callback instanceof Function ) && callback.call( dialog.root, msg, id ) ) {
+				room.find( '.confirm-title' ).html( title );
+				room.addClass( 'dialog-confirm' ).find( '.confirm-content' ).html( content );
+				room.find( '.confirm-submit' ).click( function( e ) {
+					if( $runer( callback, dialog.root, $export, dialog, e ) ) {
 						dialog.remove();
 					}
 					return false;
 				} );
-				room.find( '.cancel,.close' ).click( function(e) {
+				room.find( '.confirm-cancel,.close' ).click( function(e) {
 					dialog.remove();
 					return false;
 				} );
 			} );
 		},
-		'tips' : function( msg, time, position ){
+		'tips' : function( msg, time, position ) {
 			if( time > 7 ) msg += '<span class="close">×</span>';
 			return $showbox( msg, function( id, dialog ){
 				dialog.root.addClass( 'dialog-tips' );
-				dialog.root.find( '.content .close,.bg' ).click( function() {
+				dialog.root.find( '.content .close' + (time > 7 ? '' : ',.bg')  ).click( function() {
 					dialog.remove();
 				});
 			}, time, position );
+		},
+		/**
+		 * 自动适应
+		 * @param  {String}   mode     内容
+		 * @param  {Function} callback 回调函数
+		 * @param  {String}   cs       布局 offset : 左 上 右 下;
+		 */
+		auto : function( mode, callback, cs ){
+			if( typeof cs != 'string' ) {
+				$showbox( mode, callback );
+				return;
+			}
+			var css 		= {};
+			var rank_length = $autoRank.length;
+			$autoToMap( css, cs.split( SPLIT_SEP ) );
+			var key, i;
+			var d;
+			$showbox( mode, function( id ){
+				d = this[ id ];
+				d.runer( callback, this, id );
+				d.onresize( resize );
+				return true;
+			} );
+
+			d.resize();
+			function resize(){
+				var css4 = {}, ltrb;
+				for( i = 0; i < rank_length; i++ ){
+					key = $autoRank[ i ];
+					if( key in css && key in $autoMap ){
+						ltrb = css[ key ];
+						$autoMap[ key ].apply( css4, css[ key ] );
+					}
+				}
+				d.room.css( css4 );
+			} 
 		}
 	};
-	module.exports = msg;
+	module.exports = $export;
 }));
