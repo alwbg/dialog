@@ -1,0 +1,82 @@
+body, html{
+	background-color: none;
+	font-size: 12px;
+	font-family: 微软雅黑, arial, helvetica, verdana, tahoma, sans-serif
+}
+/*模式窗口样式*/
+.windows .dialog-confirm {
+	padding: 10px;
+	padding-left: 30px;
+	padding-right: 30px;
+	border-radius: 10px;
+	max-height: auto;
+	height: inherit;
+	color: #000;
+	overflow: hidden;
+	background: #e5e5e5;
+	min-width: 250px;
+}
+/*模式窗口标题样式*/
+.windows .confirm-title {
+	font-weight: 700;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	font-size: 14px
+}
+/*模式窗口内容样式*/
+.windows .confirm-content {
+	min-height: 60px;
+	line-height: 45px
+}
+/*模式窗口取消和"确认"按钮*/
+.windows .confirm-cancel,.windows .confirm-submit {
+	float: right;
+	margin-right: 7px;
+	cursor: pointer;
+	padding: 9px
+}
+/*模式窗口"取消"按钮*/
+.windows .confirm-cancel{
+	padding-right: 0;
+	margin-right: 0;
+}
+/*模式窗口"确认"按钮*/
+.windows .confirm-submit {
+	background: #a94442;
+	/*background-color: #72b379;*/
+	border-radius: 7px;
+	color: #fff;
+	padding-left: 20px;
+	padding-right: 20px
+}
+/*确认按钮鼠标移入样式*/
+.windows .confirm-submit:hover {
+	background-color: #c9302c
+	/*background-color: #319844;*/
+}
+/*"提示Tips":内容*/
+.windows.dialog-tips .content {
+	background-color: #83c365;
+	padding: 10px;
+	border-radius:10px;
+	color: #fff;
+	padding-left: 20px;
+	padding-right:20px;
+	/*min-width:400px;*/
+}
+/*"提示Tips":关闭*/
+.windows.dialog-tips .content .close{
+	position: absolute;
+	top: 2px;
+	right: 2px;
+	color: #fff;
+	cursor: pointer;
+}
+/*"提示Tips":警示*/
+.windows.dialog-tips .content.notice {
+	background-color: #f0ad4e
+}
+/*"提示Tips":错误*/
+.windows.dialog-tips .content.error {
+	background-color: #c9302c
+}

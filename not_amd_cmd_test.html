@@ -13,12 +13,33 @@
 		}
 	</script>
 	<script src="v1/dialog.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/dialog.css"/>
+	<!-- <style type="text/css">
+		.windows .content{/*padding: 10px;*/border-radius: 10px;background: #eee}
+	</style> -->
 </head>
 <body>
 	<script type="text/javascript">
-		dialog.show( 'Hellow JS!', function( id ){
+		dialog.auto( 'Hellow JS!',function( id ){
 			console.log( id, this )
+		},'offset:10 10 10 90');
+		
+		var position = ['center', 'left top', 'left bottom', 'right top', 'right bottom', 'center top', 'center bottom'];
+		var p = position[ ((Math.random() * 100000) >> 0) % position.length ];
+
+		var confirm = dialog.confirm( 'Notice!', 'Hellow JS!', function( dialog, self ){
+			console.log(this,dialog, self);
+			dialog.tips( '「 ' + self.id + ' 已点确定 」', 800, p ).onclose(function(){
+				self.remove();
+			}).addClass('notice');
+		})
+
+		confirm.onclose( function(){
+			dialog.tips( 'dialog.confirm已关闭...', 800, 'right top' ).addClass('error');
 		} )
+		/*dialog.show( 'Hellow JS!', function( id ){
+			console.log( id, this )
+		} )*/
 	</script>
 </body>
 </html>

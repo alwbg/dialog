@@ -3,7 +3,7 @@
  * -----------------------------------
  * - https://github.com/alwbg/dialog -
  * -----------------------------------
- * creation-time : 2018-03-06 15:40:08 PM
+ * creation-time : 2018-03-15 11:10:52 AM
  * 提供弹窗,提示[左上,上中,右上,右下,下中,左下,中]位置显示,xx秒自动关闭功能
  * 支持全局和 AMD和CMD调用
  */
@@ -110,10 +110,10 @@
 	Dialog.prototype = {
 		tips 		: module.exports.tips,
 		onresize 	: function( fx ) {
-			this._resize_.push( fx );
+			return this._resize_.push( fx ), this;
 		},
 		onclose 	: function( fx ) {
-			this._close_.push( fx );
+			return this._close_.push( fx ), this;
 		},
 		remove 		: function( di ) {
 			if( this.link instanceof Dialog ) this.link.remove();
@@ -125,6 +125,9 @@
 		glass 		: function( show ) {
 			this.root.attr( 'is-blur', +show );
 			Q( 'body' )[ show ? 'addClass' : 'removeClass']( 'blur' );
+		},
+		addClass : function( clazz ) {
+			return this.room.addClass( clazz ), this;
 		},
 		timer : function() {
 			if( +this.timeout ) {
