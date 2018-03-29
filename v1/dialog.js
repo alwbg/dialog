@@ -3,16 +3,13 @@
  * -----------------------------------
  * - https://github.com/alwbg/dialog -
  * -----------------------------------
- * creation-time : 2018-03-29 16:55:52 PM
+ * creation-time : 2018-03-29 17:06:30 PM
  * 提供弹窗,提示[左上,上中,右上,右下,下中,左下,中]位置显示,xx秒自动关闭功能
  * 支持全局和 AMD和CMD调用
  * update 2018-03-29
  * - 新增 auto内的配置项 
  * dialog.auto( html, Function, 
- * 'inner:左边距 上边距 右边距 下边距 中间选择器';
- * animate:true|false 开始位置 结束位置 ;
- * offset: 左 上 右 下;
- * center:true
+ * 'inner:左边距 上边距 右边距 下边距 中间选择器;animate:true|false 开始位置 结束位置;offset: 左 上 右 下;center:true'
  * )
  * 可以通过 dialog.push 添加和重写以上参数方法
  * dialog.push( 'auto', 'animate', function( current[, use,...]){} )
