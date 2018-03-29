@@ -3,7 +3,7 @@
  * -----------------------------------
  * - https://github.com/alwbg/dialog -
  * -----------------------------------
- * creation-time : 2018-03-29 17:06:30 PM
+ * creation-time : 2018-03-29 18:32:54 PM
  * 提供弹窗,提示[左上,上中,右上,右下,下中,左下,中]位置显示,xx秒自动关闭功能
  * 支持全局和 AMD和CMD调用
  * update 2018-03-29
@@ -377,17 +377,14 @@
 			var rank_length = $Map.auto.rank.length;
 			$autoToMap( css, cs.split( SPLIT_SEP ) );
 			var key, i;
-			var d;
-			$showbox( mode, function( id ){
-				d = this[ id ];
-				d.runer( callback, this, id );
-				d.onresize( resize );
+			var d = $showbox( mode, function( id, dia ){
+				dia.runer( callback, this, id, dia );
+				dia.onresize( resize );
 				return true;
 			} );
-
-			resize( true );
-			function resize( isStart ){
-				d.isStart = isStart;
+			resize();
+			function resize(){
+				this instanceof Dialog && (this.is2nd =  true);
 				var css4 = {}, ltrb, $autoMap = $Map.auto.mix;
 				for( i = 0; i < rank_length; i++ ){
 					key = $Map.auto.rank[ i ];
@@ -421,23 +418,14 @@
 	} );
 	// 计算内部布局
 	$export.push( 'auto', 'inner', function(D, l, t, r, b, center){
-		var room = D.room;
-		var B, H, F; 
-		var HEAD = room.find( t );
-		H = HEAD[ 0 ] || {};
-		var BODY = room.find( center );
-		B = BODY[ 0 ] || {};
-		var FOOT = room.find( b );
-		F = FOOT[ 0 ] || {};
-		var hh 	= H.offsetHeight >> 0;
-		var bsh = B.scrollHeight >> 0;
-		var bh 	= B.offsetHeight >> 0;
-		var fh 	= F.offsetHeight >> 0;
-		var wh 	= SCREEN.height;
-		var ww 	= SCREEN.width;
-		var css = {};
-		if( ww > 830 ) css.width = 'auto';
-		else css.width = ww;
+		var room 	= D.room;
+		var HEAD 	= room.find( t ), BODY = room.find( center ), FOOT = room.find( b );
+		var H 		= HEAD[ 0 ] || {}, B = BODY[ 0 ] || {}, F = FOOT[ 0 ] || {};
+		var hh 		= H.offsetHeight >> 0, bsh = B.scrollHeight >> 0, bh = B.offsetHeight >> 0, fh = F.offsetHeight >> 0;
+		var wh 		= SCREEN.height;
+		var ww 		= SCREEN.width;
+		var css 	= {};
+		css.width = ww > 830 ? 'auto' : ww;
 		if( bsh > bh || hh + bh + fh > wh ){
 			css.maxHeight = Math.min( bsh + 30, wh - hh - fh );
 		}
@@ -452,7 +440,7 @@
 	$export.push( 'auto', 'animate', function(D, use, start, end){
 		if( /^true$/.test( use ) ){
 			$repainting( D, true );
-			if( ! D.isStart ) return ;
+			if( D.is2nd ) return ;
 			D.room.css( { top : start || '+=10' } ).stop(true,true).animate( { top : end || '-=10', opacity : 1 }, 400 );
 		}
 	} )
