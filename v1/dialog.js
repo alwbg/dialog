@@ -3,9 +3,20 @@
  * -----------------------------------
  * - https://github.com/alwbg/dialog -
  * -----------------------------------
- * creation-time : 2018-03-15 11:10:52 AM
+ * creation-time : 2018-03-29 16:55:52 PM
  * 提供弹窗,提示[左上,上中,右上,右下,下中,左下,中]位置显示,xx秒自动关闭功能
  * 支持全局和 AMD和CMD调用
+ * update 2018-03-29
+ * - 新增 auto内的配置项 
+ * dialog.auto( html, Function, 
+ * 'inner:左边距 上边距 右边距 下边距 中间选择器';
+ * animate:true|false 开始位置 结束位置 ;
+ * offset: 左 上 右 下;
+ * center:true
+ * )
+ * 可以通过 dialog.push 添加和重写以上参数方法
+ * dialog.push( 'auto', 'animate', function( current[, use,...]){} )
+ * 
  */
 ;(function( global, factory ){
 	global[ 'global' ] = global;
@@ -151,7 +162,7 @@
 		},
 		runer 		: $runer
 	};
-	var $Map = {
+	var $PositionMap = {
 		'left top' : function( box, position ) {
 			return {
 				left 	: position.left >> 0,
@@ -199,25 +210,30 @@
 	/**
 	 * 设置居中
 	 */
-	function $center( id, position, dia ) {
+	function $center( id, position, dia, user ) {
 		var dialog 	= Q( id );
 
-		var func = $Map[ position ];
+		var func = $PositionMap[ position ] || null;
 		if( !( func instanceof Function ) ) {
-			func = $Map.center;
+			func = $PositionMap.center;
 		};
-		var css 		= dia.isOwnSetting ? {} : func( $pickWidthHeight( dialog.room || dialog ), (dia||{}).offset || {} );
+		var css 		= ! user && dia.isOwnSetting ? {} : func( $pickWidthHeight( dialog.room || dialog ), (dia||{}).offset || {} );
 		css.zIndex 		= 10;
 		css.position 	= fixed;
 		dialog.css( css );
 		return SCREEN;
 	}
+	// 当windows变化后执行
 	function $resize( dia ) {
 		$runer( dia._resize_, dia );
-		var css     = $center( dia.room, dia.position, dia );
+		$repainting( dia );
+	};
+	// 重新绘制
+	function $repainting( dia, user ){
+		var css     = $center( dia.room, dia.position, dia, user );
 		css.left    = css.top   = 0;
 		dia.bg.css( css );
-	};
+	}
 	/**
 	 * 显示Dialog
 	 * @param  {String} mode 要显示的窗体内容
@@ -260,10 +276,8 @@
 			timeout 	: time
 		});
 		root.attr( {id : dialog.id} );
-		if( ! dialog.isOwnSetting ){
-			dialog.resize().timer();
-			room.css( { top : '+=10' } ).animate( { top : '-=10', opacity : 1 }, 400 );
-		}
+
+		$Map.auto.mix.animate( dialog, ! dialog.isOwnSetting );
 		return dialog;
 	};
 	//移除当前窗口
@@ -289,24 +303,18 @@
 			});
 		};
 	};
-	Q( window ).resize( function() {
+	function $$resize() {
 		SCREEN 	= $pickWidthHeight();
 		for( var i in Dialogs ) {
 			$resize( Dialogs[ i ] );
 		}
-	} ).keydown(  function( e ) {
+	}
+	Q( window ).resize( $$resize ).keydown(  function( e ) {
 		if( e.keyCode === 27 ) $current();
 	} );
 
-	var $autoRank = ['offset', 'max', 'min'];
-	var $autoMap = {
-		offset : function(l, t, r, b){
-			this.top 	= t >> 0;
-			this.left 	= l >> 0;
-			this.width 	= SCREEN.width - this.left - (r >> 0);
-			this.height = SCREEN.height - this.top - (b >> 0);
-		}
-	}
+	// 配置
+	var $Map = {}
 	function $autoToMap( css, list ){
 		!css && (css = {});
 		var kv, k, v, vs, fx;
@@ -314,7 +322,7 @@
 			kv = list[ i ].split( SPLIT_KV );
 			k = kv[ 0 ];
 			v = kv[ 1 ] || SPACE;
-			if( (vs = v.split( /\s+/ )).length > 1 ){
+			if( (vs = v.split( /\s+/ )).length >= 1 ){
 				css[ k ] = vs;
 			}
 		}
@@ -326,6 +334,8 @@
 		'show'    	: $showbox,
 		'list'    	: Dialogs,
 		runer 		: $runer,
+		merge 		: merge,
+		resize 		: $$resize,
 		'remove' : function( di ){
 			$current( di );
 		},
@@ -359,7 +369,7 @@
 		 * 自动适应
 		 * @param  {String}   mode     内容
 		 * @param  {Function} callback 回调函数
-		 * @param  {String}   cs       布局 offset : 左 上 右 下;
+		 * @param  {String}   cs       布局 offset : 左 上 右 下..等;
 		 */
 		auto : function( mode, callback, cs ){
 			if( typeof cs != 'string' ) {
@@ -367,7 +377,7 @@
 				return;
 			}
 			var css 		= {};
-			var rank_length = $autoRank.length;
+			var rank_length = $Map.auto.rank.length;
 			$autoToMap( css, cs.split( SPLIT_SEP ) );
 			var key, i;
 			var d;
@@ -378,19 +388,76 @@
 				return true;
 			} );
 
-			d.resize();
-			function resize(){
-				var css4 = {}, ltrb;
+			resize( true );
+			function resize( isStart ){
+				d.isStart = isStart;
+				var css4 = {}, ltrb, $autoMap = $Map.auto.mix;
 				for( i = 0; i < rank_length; i++ ){
-					key = $autoRank[ i ];
+					key = $Map.auto.rank[ i ];
 					if( key in css && key in $autoMap ){
 						ltrb = css[ key ];
-						$autoMap[ key ].apply( css4, css[ key ] );
+						if( ltrb[ 0 ] instanceof Dialog ) continue;
+						ltrb.unshift( d );
+						$autoMap[ key ].apply( css4, ltrb );
+						ltrb.shift( d );
 					}
 				}
 				d.room.css( css4 );
-			} 
+			}
+			return d;
+		},
+		push : function( key, attr, val ){
+			var map = $Map[ key ] || ($Map[ key ] = {rank : [], mix : {}});
+			var has = attr in map.mix;
+			map.mix[ attr ] = val;
+			if( has ) return this;
+			map.rank.push( attr );
+			return this;
 		}
 	};
+	// 窗口距容器的边距
+	$export.push( 'auto', 'offset', function(D, l, t, r, b){
+		this.top 	= t >> 0;
+		this.left 	= l >> 0;
+		this.width 	= SCREEN.width - this.left - (r >> 0);
+		this.height = SCREEN.height - this.top - (b >> 0);
+	} );
+	// 计算内部布局
+	$export.push( 'auto', 'inner', function(D, l, t, r, b, center){
+		var room = D.room;
+		var B, H, F; 
+		var HEAD = room.find( t );
+		H = HEAD[ 0 ] || {};
+		var BODY = room.find( center );
+		B = BODY[ 0 ] || {};
+		var FOOT = room.find( b );
+		F = FOOT[ 0 ] || {};
+		var hh 	= H.offsetHeight >> 0;
+		var bsh = B.scrollHeight >> 0;
+		var bh 	= B.offsetHeight >> 0;
+		var fh 	= F.offsetHeight >> 0;
+		var wh 	= SCREEN.height;
+		var ww 	= SCREEN.width;
+		var css = {};
+		if( ww > 830 ) css.width = 'auto';
+		else css.width = ww;
+		if( bsh > bh || hh + bh + fh > wh ){
+			css.maxHeight = Math.min( bsh + 30, wh - hh - fh );
+		}
+		BODY.css(css);
+	} )
+	// 设置居中
+	$export.push( 'auto', 'center', function(D, center){
+		if( !/^true$/.test( center ) ) return;
+		$repainting( D, true );
+	} );
+	// 第一次打开时的动画 可以被覆盖 @see dialog.push('auto', 'animate', Function)
+	$export.push( 'auto', 'animate', function(D, use, start, end){
+		if( /^true$/.test( use ) ){
+			$repainting( D, true );
+			if( ! D.isStart ) return ;
+			D.room.css( { top : start || '+=10' } ).stop(true,true).animate( { top : end || '-=10', opacity : 1 }, 400 );
+		}
+	} )
 	module.exports = $export;
 }));

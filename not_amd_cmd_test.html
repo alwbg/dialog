@@ -37,6 +37,9 @@
 		confirm.onclose( function(){
 			dialog.tips( 'dialog.confirm已关闭...', 800, 'right top' ).addClass('error');
 		} )
+		
+		dialog.auto( 'text', function( id ){
+		}, 'animate:true +=20 -=20' )
 		/*dialog.show( 'Hellow JS!', function( id ){
 			console.log( id, this )
 		} )*/
