@@ -3,7 +3,7 @@
  * -----------------------------------
  * - https://github.com/alwbg/dialog -
  * -----------------------------------
- * creation-time : 2018-03-29 18:32:54 PM
+ * creation-time : 2018-04-02 18:27:08 PM
  * 提供弹窗,提示[左上,上中,右上,右下,下中,左下,中]位置显示,xx秒自动关闭功能
  * 支持全局和 AMD和CMD调用
  * update 2018-03-29
@@ -26,14 +26,14 @@
 		var funcName = 'require';
 		if( funcName && !global[ funcName ] ) {
 			global[ funcName ] = function( id ) {
-				return global[id];
+				return global[ id ];
 			};
 		};
 		var MODULE = { exports : {} };
 		factory( global[ funcName ] || function( id ) {
 			alert( '需要实现 require(),加载模块:"' + id + '"' );
 		}, MODULE.exports, MODULE );
-		global['dialog'] = MODULE.exports;
+		global[ 'dialog' ] = MODULE.exports;
 	}
 }( this, function( require, exports, module ) {
 
@@ -181,7 +181,6 @@
 		'right top' : function( box, position ) {
 			return {
 				top 	: position.top >> 0,
-				//left 	: SCREEN.width - box.width - (position.right >> 0)
 				right 	: 0
 			};
 		},
@@ -273,7 +272,7 @@
 			timeout 	: time
 		});
 		root.attr( {id : dialog.id} );
-
+		dialog.timer();
 		$Map.auto.mix.animate( dialog, ! dialog.isOwnSetting );
 		return dialog;
 	};
@@ -333,6 +332,9 @@
 		runer 		: $runer,
 		merge 		: merge,
 		resize 		: $$resize,
+		screen 		: function(){
+			return SCREEN;
+		},
 		'remove' : function( di ){
 			$current( di );
 		},
@@ -382,21 +384,21 @@
 				dia.onresize( resize );
 				return true;
 			} );
-			resize();
-			function resize(){
-				this instanceof Dialog && (this.is2nd =  true);
+			resize.call( d, true );
+			function resize( is1st ){
+				this.is1st =  !!is1st;
 				var css4 = {}, ltrb, $autoMap = $Map.auto.mix;
 				for( i = 0; i < rank_length; i++ ){
 					key = $Map.auto.rank[ i ];
 					if( key in css && key in $autoMap ){
 						ltrb = css[ key ];
 						if( ltrb[ 0 ] instanceof Dialog ) continue;
-						ltrb.unshift( d );
+						ltrb.unshift( this );
 						$autoMap[ key ].apply( css4, ltrb );
-						ltrb.shift( d );
+						ltrb.shift( this );
 					}
 				}
-				d.room.css( css4 );
+				this.room.css( css4 );
 			}
 			return d;
 		},
@@ -440,7 +442,7 @@
 	$export.push( 'auto', 'animate', function(D, use, start, end){
 		if( /^true$/.test( use ) ){
 			$repainting( D, true );
-			if( D.is2nd ) return ;
+			if( D.is1st != undefined && ! D.is1st ) return ;
 			D.room.css( { top : start || '+=10' } ).stop(true,true).animate( { top : end || '-=10', opacity : 1 }, 400 );
 		}
 	} )
