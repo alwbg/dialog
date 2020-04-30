@@ -1,46 +1,151 @@
 <html>
-<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<meta content="yes" name="apple-mobile-web-app-capable" />
-	<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0,  user-scalable=0;" name="viewport" />
-	<title>Dialog AMD CMD Test</title>
-	<script type="text/javascript">
-		var _Qma = {
-			alias :{
-				main 	: 'script/main',
-				dialog 	: 'v1/dialog',
-				query 	: 'http://js.letvcdn.com/lc06_lecloud/201611/28/17/05/jquery-1.11.3.js'
-			},
-			depends : {
-				query : {
-					exports : '$'
-				}
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <meta content="yes" name="apple-mobile-web-app-capable"/>
+        <meta content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0" name="viewport"/>
+        <title>Dialog AMD CMD Test</title>
+        <script type="text/javascript">
+            var _Qma = {
+                alias: {
+                    main: "script/main",
+                    dialog: "v1/dialog",
+                    // query: "http://js.letvcdn.com/lc06_lecloud/201611/28/17/05/jquery-1.11.3.js",
+                },
+                depends: {
+                    query: {
+                        // exports: "$",
+                    },
+                },
+			};
+			// DEBUG = true
+		</script>
+		<style>
+			.windows .confirm-content span{
+				display: inline-block;
+				padding: 3px;
+				background-color: #00bcd4;
+				color: #dedede;
+				margin: 3px;
+				border-radius: 4px;
+				height: 20px;
+				line-height: 20px;
+				padding-left: 10px;
+				padding-right: 10px;
 			}
-		}
-	</script>
-</head>
-<body>
-	<script src="../runjs/runjs.js">
-		//加载样式
-		require('css/dialog.css');
-		//加载dialog模块
-		var dialog = require( 'dialog' );
-		var position = ['center', 'left top', 'left bottom', 'right top', 'right bottom', 'center top', 'center bottom'];
-		var p = position[ ((Math.random() * 100000) >> 0) % position.length ];
+		</style>
+    </head>
+    <body>
+		<!-- <div id="text" data-index="1" data-key="source" data-index-i="i" event-apple="1"  event-apple-i="1"></div> -->
+        <script src="../runjs/runjs.js">
+            //加载样式
+            require('css/dialog.css');
+            require.error = function() {
+                console.log(...arguments)
+            }
+            //加载dialog模块
+            var dialog = require('dialog');
+            var position = ['center', 'left top', 'left bottom', 'right top', 'right bottom', 'center top', 'center bottom'];
+			function randomIndex(){
+				return position[((Math.random() * 100000) >> 0) % position.length]
+			}
+			var iHtml = '<span id="text" data-index="1" data-key="source" data-index-i="i" event-apple="1" event-apple-i="1" handle="data">测试获取DATA</span>\
+			<span class="loadings" handle="loadings">Request Text!</span>\
+			<span class="in" handle="in">点击</span>\
+			<input placeholder="..." type="text" class="input-style" handle="input-style"/><br/><br/><textarea  placeholder="..." cols="2" rows="6" class="textarea-style"></textarea><div>Hellow JS!离离原上草一岁一枯荣</div>'
+            function run() {
+                var p = randomIndex();
+                var confirm = dialog.confirm('Notice!', iHtml, function(dialog, self) {
+                    dialog.tips('「 ' + self.id + ' 已点确定 」', 800, p).onclose(function() {
+                        self.remove();
+					}).addClass('white');
+					/* dialog.confirm('', '<input placeholder="..." type="text" class="input-style"/>', function(){
+					}, {
+						last: function(){
+							this.addClass('simply')
+						}
+					}) */
+                }, {
+                    cs: 'inner:x .confirm-title x .confirm-cancel .confirm-content 70;',
+                    last: function() {
+						var iMsgs;
+						this.click('data', function(e) {
+							iMsgs = [];
+							iMsgs.push(JSON.stringify(dialog.attrs(e.target)));
+							var a = 100;
+							while(a--){
+								iMsgs.push('<br/>')
+							}
+							dialog.confirm( 'Text', iMsgs.join(''), null, {
+								cs: 'inner: 30 .confirm-title 0 0 .confirm-content;offset:auto 40 40 0;center:1',
+								last: function(){
+									this.addClass('simply');
+								}
+							})
+						});
+                        this.click('in', function() {
+                            dialog.tips('我刚被点击了inner:x .confirm-title x .confirm-cancel .confirm-content 70;inner:x .confirm-title x .confirm-cancel .confirm-content 70;inner:x .confirm-title x .confirm-cancel .confirm-content 70;', 600, this, function(){
+								this.addClass('white');
+								// console.log(this,...arguments);
+							})
+						})
+						this.click('loadings', ()=>{
+							loading(600, 300)
+						})
+						this.click('input-style', function(){
+							dialog.tips('我刚获取焦点', 600, this).addClass('black')
+						})
+                        this.addClass('notice ios');
+                    }
+                })
 
-		var confirm = dialog.confirm( 'Notice!', 'Hellow JS!<br/><br/><br/><br/><br/><br/><br/><br/>', function( dialog, self ){
-			console.log(this,dialog, self);
-			dialog.tips( '「 ' + self.id + ' 已点确定 」', 800, p ).onclose(function(){
-				self.remove();
-			}).addClass('notice');
-		})
+                confirm.onclose(function() {
+                    dialog.tips('dialog.confirm已关闭...', 800, 'right top').addClass('error').onclose(run);
+				})
+				return confirm;
+            }
+			function loading(width, height){
+				var loadingbox = dialog.confirm('', '', null, {
+					cs: 'inner:0 .confirm-title 0 0 .confirm-content',
+					last: function(){
+						this.room.addClass('loading');
+					}
+				} ).addClass('simply');
+				var room = loadingbox.room;
+				setTimeout(() => {
+					var css = room.css('width,height,left,top', 'number');
+					room.removeClass('loading');
+					var offsetleft = (width - css.width) / 2;
+					var offsetright = (height - css.height) / 2;
+					var apple = {
+						height: height,
+						width: width,
+						left: (offsetleft < 0 ? '+=' : '-=') + (offsetleft * (2 * +!(offsetleft < 0) - 1)),
+						top: (offsetright < 0 ? '+=' : '-=') + (offsetright * (2 * +!(offsetright < 0) - 1))
+					}
+					// console.log(css, apple)
+					room.animate(apple, 300, function(){
+						// room.remove()
+					});
+				}, 1 * 1000)
+			}
+			run();
+			var s = dialog.screen()
+		
+            // dialog.tips( 'dialog.confirm已关闭...', 800, 'right top' ).addClass('error').onclose(run);
+            /* dialog.auto( 'text', function( id ){
+      }, 'animate:true +=20 -=20' ) */
+		
+	  		
+			/* var Nil;
+			var elements = dialog.Query('#text')[0];
+			var iMsgs = [];
+			iMsgs.push(JSON.stringify(dialog.attrs(elements, 'index,index-i=>i')) + '<br/>');
+			iMsgs.push(JSON.stringify(dialog.attrs(elements)) + '<br/>');
+			iMsgs.push(JSON.stringify(dialog.attrs(elements, 'apple', 'event')) + '<br/>'); */
+			// dialog.confirm( 'Text', iMsgs.join('')).addClass('simply');
+		</script>
+		<script>
 
-		confirm.onclose( function(){
-			dialog.tips( 'dialog.confirm已关闭...', 800, 'right top' ).addClass('error');
-		} )
-
-		dialog.auto( 'text', function( id ){
-		}, 'animate:true +=20 -=20' )
-	</script>
-</body>
+		</script>
+    </body>
 </html>

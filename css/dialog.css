@@ -2,8 +2,7 @@ body, html{
 	background-color: none;
 	font-size: 12px;
 	font-family: 微软雅黑, arial, helvetica, verdana, tahoma, sans-serif
-}
-/*模式窗口样式*/
+}/*模式窗口样式*/
 .windows .dialog-confirm {
 	padding: 10px;
 	padding-left: 30px;
@@ -16,6 +15,7 @@ body, html{
 	background: #e5e5e5;
 	min-width: 250px;
 }
+
 /*模式窗口标题样式*/
 .windows .confirm-title {
 	font-weight: 700;
@@ -23,60 +23,520 @@ body, html{
 	margin-bottom: 10px;
 	font-size: 14px
 }
+
 /*模式窗口内容样式*/
 .windows .confirm-content {
 	min-height: 60px;
-	line-height: 45px
+	line-height: 45px;
+	overflow: auto;
 }
+
 /*模式窗口取消和"确认"按钮*/
-.windows .confirm-cancel,.windows .confirm-submit {
+.windows .confirm-cancel,
+.windows .confirm-submit {
 	float: right;
 	margin-right: 7px;
 	cursor: pointer;
 	padding: 9px
 }
+
 /*模式窗口"取消"按钮*/
-.windows .confirm-cancel{
+.windows .confirm-cancel {
 	padding-right: 0;
 	margin-right: 0;
 }
+
+.windows.notice .dialog-confirm .confirm-submit {
+	background: #a94442;
+}
+
+.windows.notice .dialog-confirm .confirm-submit:hover {
+	background: #c9302c;
+}
+
 /*模式窗口"确认"按钮*/
 .windows .confirm-submit {
-	background: #a94442;
-	/*background-color: #72b379;*/
+	/*background: #a94442;*/
+	background-color: #72b379;
 	border-radius: 7px;
 	color: #fff;
 	padding-left: 20px;
 	padding-right: 20px
 }
+
 /*确认按钮鼠标移入样式*/
 .windows .confirm-submit:hover {
-	background-color: #c9302c
-	/*background-color: #319844;*/
+	/*background-color: #c9302c*/
+	background-color: #319844;
+}
+.windows.dialog-tips .content{
+	background-color: #83c365;
 }
 /*"提示Tips":内容*/
 .windows.dialog-tips .content {
-	background-color: #83c365;
 	padding: 10px;
-	border-radius:10px;
-	color: #fff;
+	border-radius: 10px;
+	color: #2b5616;
 	padding-left: 20px;
-	padding-right:20px;
+	padding-right: 20px;
+
+	border-left: 2px solid #2b5616;
 	/*min-width:400px;*/
 }
-/*"提示Tips":关闭*/
-.windows.dialog-tips .content .close{
-	position: absolute;
-	top: 2px;
-	right: 2px;
+
+/*"提示Tips":内容*/
+.windows.graphic .content {
+	background-color: #2C2C2C;
+	padding: 10px !important;
+	border-radius: 10px;
 	color: #fff;
+	text-align: center;
+}
+
+/*"提示Tips":关闭*/
+.windows.dialog-tips .content .close {
+	position: absolute;
+	top: 0px;
+	right: 5px;
+	color: #2b5616;
 	cursor: pointer;
 }
+/* 黑色 */
+.windows.dialog-tips.black .content .close,
+.windows.dialog-tips.white .content .close{
+	color: #828282;
+	font-size: 15px;
+	background-color: #353535;
+	display: block;
+	width: 25px;
+	height: 100%;
+	/* border-radius: 10px; */
+	line-height: 35px;
+	text-align: center;
+	right: -10px;
+	top: 0;
+	overflow: hidden;
+	border-radius: 0 10px 10px 0;
+}
+.windows.dialog-tips.black .content,
+.windows.dialog-tips.white .content{
+	/* padding-right: 25px; */
+	margin-right: 10px;
+}
+.windows.dialog-tips.black .content{
+	background-color: #2b2b2b;
+	border-color: #1b1b1b;
+	color: #b5b5b5;
+	/* padding-right: 10px; */
+}
+.windows.dialog-tips.black .windows-freely .link-mark{
+	border-top-color: #2b2b2b
+}
+/* 黑色结束 */
+
+.windows.dialog-tips.white .content .close{
+	color: #b12424;
+	background-color: #FF5722;
+}
+.windows.dialog-tips.white .content{
+	background-color: #e6e6e6;
+	border-color: #b7b7b7;
+	color: #545454;
+	/* padding-right: 20px; */
+}
+.windows.dialog-tips.white .windows-freely .link-mark{
+	border-top-color: #b7b7b7;
+}
+
+.windows.dialog-tips .content .mark {
+	font-weight: 700;
+	font-size: 14px;
+}
+
+.windows.dialog-tips.notice .content .close {
+	color: #503004
+}
+
+.windows.dialog-tips.error .content .close {
+	color: #480d0c;
+}
+
+.windows.graphic .content .close {
+	font-weight: bold;
+	font-size: 17px;
+}
 /*"提示Tips":警示*/
+.windows.dialog-tips.notice .content,
 .windows.dialog-tips .content.notice {
-	background-color: #f0ad4e
+	background-color: #f0ad4e;
+	color: #503004;
+	border-left: 2px solid #503004;
 }
 /*"提示Tips":错误*/
+.windows.dialog-tips.error .content,
 .windows.dialog-tips .content.error {
-	background-color: #c9302c
+	background-color: #c9302c;
+	color: #480d0c;
+	border-left: 2px solid #480d0c;
 }
+
+/*隐藏背景*/
+.windows.hide-bg .bg {
+	display: none !important;
+
+}
+
+.windows.shadow .content {
+	border: solid #e8e6e6;
+	box-shadow: 0 0.46875rem 2.1875rem rgba(4, 9, 20, 0.03), 0 0.9375rem 1.40625rem rgba(4, 9, 20, 0.03), 0 0.25rem 0.53125rem rgba(4, 9, 20, 0.05), 0 0.125rem 0.1875rem rgba(4, 9, 20, 0.03);
+}
+
+/*loading*/
+.windows.dialog-tips.simply .content
+/* .windows.dialog-tips.loading .content,
+.windows.dialog-tips .content.loading  */{
+	/*background-color: #c9302c*/
+	/* background-image: url(../images/index.cutie-fox-spinner.gif); */
+	background-size: 30px;
+	background-position: 2px 3px;
+	background-repeat: no-repeat;
+	padding-left: 44px;
+
+}
+
+.windows.dialog-tips.simply .content {
+	background-color: initial;
+	background-position: center;
+	height: 25px;
+}
+
+.windows.dialog-tips.simply .content .close,
+.windows.dialog-tips.simply .bg {
+	display: none;
+}
+
+.windows.login .confirm-title {
+	text-align: center;
+	margin-bottom: 29px;
+	font-size: 24px;
+}
+
+.windows.login .left,
+.windows.login .right {
+	display: inline-block;
+	margin-bottom: 11px;
+}
+
+.windows.login .left {
+	width: 0%;
+	text-align: right;
+}
+
+.windows.login .right {
+	width: 100%
+}
+
+.windows.login .input {
+	outline: none;
+	height: 50px;
+	width: 100%;
+	/*margin-left: 10px;*/
+	padding: 5px;
+	font-size: 12px;
+	font-weight: bold;
+	border: 0;
+	border-radius: 7px;
+}
+
+.windows.login .input:focus {
+	border: 1px solid #b3b1b1;
+}
+
+.windows.login .input:focus-within {
+	border: 1px solid #b3b1b1;
+}
+
+.windows .dialog-confirm~.bg,
+.windows.login .bg {
+	background-color: #000;
+	opacity: 0.8
+}
+
+.windows.login .input::-webkit-input-placeholder,
+/* Mozilla Firefox 19+ */
+.windows.login .input::-moz-placeholder,
+/* Mozilla Firefox 4 to 18 */
+.windows.login .input:-moz-placeholder,
+/* Internet Explorer 10-11 */
+.windows.login .input:-ms-input-placeholder {
+	font-size: 12px;
+	font-weight: inherit;
+	color: #ccc;
+}
+
+.windows.login .dialog-confirm {
+	background-color: #eee
+}
+.windows .windows-freely {
+	position: inherit
+}
+/*select element*/
+.selected-item{
+	border-left: 5px solid #4c4c4c;
+    background-color: #353535;
+}
+
+.confirm-cancel.close{
+	display: none;
+}
+
+/* IOS ---- start */
+.windows.ios .dialog-confirm {
+	border-radius: 0.7rem 0.7rem 0 0;
+	background-color: #505050;
+    color: #c5c5c5;
+}
+.windows.ios .dialog-confirm{
+	overflow: visible
+}
+.windows.ios .dialog-confirm .confirm-cancel,
+.windows.ios .dialog-confirm .confirm-submit{
+	position: absolute;
+    bottom: -41px;
+    right: 0;
+    border-radius: 0 0 0.5rem 0;
+    padding: 0;
+    width: calc(20% - 0.5px);
+    text-align: center;
+    margin: 0;
+    height: 40px;
+    line-height: 40px;
+}
+.windows.ios .dialog-confirm .confirm-cancel{	
+	background-color: #353535;
+	color: #656565;
+}
+.windows.ios .confirm-title{
+	font-size: 20px;
+	color: #fff;
+}
+.windows.ios .dialog-confirm .confirm-cancel:hover {
+    background-color: #262626;
+}
+.windows.ios.prompt .dialog-confirm .confirm-submit,
+.windows.ios .dialog-confirm .confirm-submit {
+	left: 0;
+	border-radius: 0 0 0 0.7rem;
+	width: calc(80% - 0.5px);
+	font-size: 16px;
+	/* font-weight: bold; */
+	color: #000;
+    letter-spacing: 7px;
+	background-color: #8dc116;
+}
+.windows.ios .dialog-confirm .confirm-submit:hover {
+	background-color: #7ead12;
+	/* color: #3a5200; */
+}
+.windows.ios.prompt .dialog-confirm .confirm-submit{
+	background-color: #FFC107;
+}
+.windows.ios.prompt .dialog-confirm .confirm-submit:hover{
+	background-color: #FFC720;
+}
+
+.input-style,.textarea-style{
+	/* background-color: #d4d4d4; */
+	/* color: #cacaca; */
+	outline: none;
+    height: 30px;
+    width: inherit;
+    /* margin-left: 10px; */
+    padding: 5px;
+    font-size: 12px;
+    font-weight: bold;
+    border: 0;
+    border-radius: 0.3rem;
+}
+.windows.simply .input-style{
+	height: 50px;
+    line-height: 50px;
+    color: #000;
+    width: 100%;
+}
+.windows.ios .input-style,.windows.ios .textarea-style{
+	background-color: #353535;
+}
+.windows.ios input-style:focus-within{
+    border: 1px solid #b3b1b1;
+}
+.windows.ios .textarea-style{
+	height: 50px;
+	width: 100%;
+}
+/* IOS ---- end */
+
+.windows.simply .dialog-confirm{
+	overflow: visible;
+	border-radius: 0.9rem 0 0.9rem 0.9rem;
+}
+.windows.simply .dialog-confirm .confirm-cancel.close{
+	display: block;
+	position: absolute;
+    top: 0px;
+    right: -32px;
+    background-color: #FF5722;
+    padding: 3px;
+    border-radius: 0 0.9rem 0.3rem 0;
+    height: 30px;
+    color: #671f08;
+    /* border: 1px solid #732c2c; */
+    border-left: none;
+	line-height: 30px;
+	width: 24px;
+	text-align: center;
+	font-size: 20px;
+    font-weight: 100;
+}
+.windows.simply .dialog-confirm .confirm-cancel.close:hover{
+	background-color: #f15625;
+	color: black;
+	font-size: 22px;;
+}
+.windows.simply .confirm .confirm-content .l-title{
+	background-color: #2196F3;
+	height: 27px;
+	line-height: 27px;
+	border-radius: 8px;
+}
+.windows.simply .dialog-confirm .confirm-submit,.windows.simply .dialog-confirm .confirm-cancel{
+	display: none;
+}
+
+.dialog-tips .windows-freely .link-mark {
+	overflow: hidden;
+	border-top-width: 30px;
+	width: 0;
+	height: 0;
+	border: 6px solid;
+	margin-top: -14px;
+    border-color: transparent;
+	position: absolute;
+	bottom: -12px;
+	left: 10;
+}
+.dialog-tips .windows-freely .link-mark{
+	border-top-color:#83c365;
+}
+.dialog-tips.error .windows-freely .link-mark{
+	border-top-color:#c9302c;
+}
+.dialog-tips.notice .windows-freely .link-mark{
+	border-top-color:#f0ad4e;
+}
+/* 鼠标移入显示 */
+.hover-show-hand{
+	cursor: pointer;
+}
+
+.mark-right{
+	position:absolute;top: -6px;right: 0;background-color: #f0ad4d;border-radius: 8px;
+}
+[data-text],[text] {
+	font-size: initial;
+	display: inline-block;
+    vertical-align: bottom;
+}
+[data-text]::before{
+	content: attr(data-text);
+}
+[text]::before{
+	content: attr(text);
+}
+[data-text]::before,[text]::before{
+	float: left;
+    font-weight: bold;
+	animation: markMove 2s infinite ease-in;
+}
+.loading{
+	/* height: 40px  !important; */
+	display: inline-block;
+	/* width: 40px  !important; */
+	/* overflow: hidden !important; */
+	/* padding: 0px !important; */
+	/* min-width: auto !important; */
+}
+.loading::before {
+	position: absolute;
+    top: 50%;
+    left: 50%;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    width: 40px;
+    height: 40px;
+    margin-top: -15px;
+    margin-left: -15px;
+    border-top: 2px solid #ff5721;
+    border-right: 2px solid transparent;
+    border-radius: 50%;
+    -webkit-animation: loading .6s linear infinite;
+    animation: loading .6s linear infinite;
+    content: "";
+}
+
+.windows .dialog-confirm.loading{
+	min-width: 200px;
+	background: none;
+}
+.windows .dialog-confirm.loading .close{
+	display: none !important;
+}
+
+ @-webkit-keyframes loading {
+    to {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg)
+    }
+}
+
+@keyframes loading {
+    to {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg)
+    }
+}
+@keyframes markMove {
+	0%, 65%{ 
+      -webkit-transform:rotate(0deg);
+      transform:rotate(0deg);
+    }
+    70% {  
+      -webkit-transform:rotate(10deg);
+      transform:rotate(10deg);
+    }
+    75% {  
+      -webkit-transform:rotate(-10deg);
+      transform:rotate(-10deg);
+    }
+    80% {  
+      -webkit-transform:rotate(10deg);
+      transform:rotate(10deg);
+    }
+    85% {  
+      -webkit-transform:rotate(-10deg);
+      transform:rotate(-10deg);
+    }
+    90% {  
+      -webkit-transform:rotate(10deg);
+      transform:rotate(10deg);
+    }
+    95% {  
+      -webkit-transform:rotate(-10deg);
+      transform:rotate(-10deg);
+    }
+    100% {  
+      -webkit-transform:rotate(0deg);
+      transform:rotate(0deg);
+    }
+}
+
