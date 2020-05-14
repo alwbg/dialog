@@ -3,7 +3,7 @@
  * -----------------------------------
  * - https://github.com/alwbg/dialog -
  * -----------------------------------
- * creation-time : 2020-04-30 11:20:12 AM
+ * creation-time : 2020-05-14 16:43:11 PM
  * 提供弹窗,提示[左上,上中,右上,右下,下中,左下,中]位置显示,xx秒自动关闭功能
  * 支持全局和 AMD和CMD调用
  * update 2018-03-29
@@ -36,7 +36,6 @@
 		global[ 'dialog' ] = MODULE.exports;
 	}
 }( this, function( require, exports, module ) {
-
 	var Count = 0;
 	var ddoc = document.documentElement;
 	var isNotFixed = /ie\s*(6|5)/ig.test(navigator.userAgent);
@@ -675,7 +674,7 @@
 	 */
 	function picker(source, rule, type, filter) {
 		if (rule == ALL) return source;
-		if (!isString(rule)) return {};
+		if (!isString(rule) || source === Nil) return {};
 		var rainbox = [],
 			isArray = true;
 		source instanceof Array || (source = [source], isArray = false);
@@ -1482,8 +1481,9 @@
 	var aOffsetList = [s_OFFSETWIDTH, s_OFFSETHEIGHT, s_OFFSETWIDTH, s_OFFSETHEIGHT];
 	// 计算内部布局
 	rExport.push(s_AUTO_KEY, 'inner', function (D, l, t, r, b, center, offset) {
-		var room = D.room;
-		var offsets;
+		var 
+			room = D.room,
+			offsets;
 		if (!(offsets = room.inneroffset)) {
 			offsets = room.inneroffset = {};
 			each([l, t, r, b], function (k, v, map, offsets, mk) {
@@ -1497,23 +1497,23 @@
 				}
 			}, aOffsetList, offsets, 'l,t,r,b'.split(','));
 		}
-		var css = {};
-		var paddings = iPaddings(room);
-		var BODY = room.iINNER || (room.iINNER = room.find(center)),
-			cHeight = BODY.attr(s_OFFSETHEIGHT) >> 0,
+		var 
+			css 			= {},
+			paddings 		= iPaddings(room),
+			BODY 			= room.iINNER || (room.iINNER = room.find(center)),
 			/* inner 滚动高度 */
-			cScrollHeight = BODY.attr(s_SCROLLHEIGHT) >> 0,
-			/* 窗口高度 */
-			rHeight = room.attr(s_OFFSETHEIGHT) >> 0,
-			rWidth = room.attr('scrollWidth') >> 0,
-			wh = SCREEN.height - (offset >> 0),
-			ww = SCREEN.width - (offset >> 0);
-		var offsetY = offsets.t + offsets.b + paddings.t + paddings.b;
+			cScrollHeight 	= BODY.attr(s_SCROLLHEIGHT) >> 0,
+			screenHeight 	= SCREEN.height - (offset >> 0),
+			screenWidth 	= SCREEN.width - (offset >> 0),
+			minWidth 		= room.minWidth || (room.minWidth = room.attr('scrollWidth') >> 0),
+			offsetY 		= offsets.t + offsets.b + paddings.t + paddings.b;
 
-		css.width = ww >= rWidth ? s_AUTO : ww - paddings.l - paddings.r;
-		css.height = cScrollHeight - offsetY > rHeight /* inner的实际高度 - 窗口偏移量 > 窗口高度 */
-			|| cHeight > wh /* 窗口高度 > 可视范围 */
-			? Math.min(cScrollHeight, (this.height || wh) - (offsetY)) : s_AUTO;
+		css.width = screenWidth > minWidth ? s_AUTO : screenWidth - paddings.l + paddings.r;
+		css.height = cScrollHeight + offsetY > screenHeight
+			?
+			Math.min(cScrollHeight, (this.height || screenHeight) - (offsetY))
+			:
+			s_AUTO;
 		BODY.css(css);
 	});
 	// 设置居中
