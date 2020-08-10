@@ -101,6 +101,9 @@ body, html{
 	color: #2b5616;
 	cursor: pointer;
 }
+.windows.dialog-tips.black{
+	background: none !important;
+}
 /* 黑色 */
 .windows.dialog-tips.black .content .close,
 .windows.dialog-tips.white .content .close{
@@ -118,18 +121,13 @@ body, html{
 	overflow: hidden;
 	border-radius: 0 10px 10px 0;
 }
-.windows.dialog-tips.black .content,
-.windows.dialog-tips.white .content{
-	/* padding-right: 25px; */
-	margin-right: 10px;
-}
 .windows.dialog-tips.black .content{
 	background-color: #2b2b2b;
 	border-color: #1b1b1b;
 	color: #b5b5b5;
 	/* padding-right: 10px; */
 }
-.windows.dialog-tips.black .windows-freely .link-mark{
+.windows.dialog-tips.black .windows-freely .i-mark{
 	border-top-color: #2b2b2b
 }
 /* 黑色结束 */
@@ -144,7 +142,7 @@ body, html{
 	color: #545454;
 	/* padding-right: 20px; */
 }
-.windows.dialog-tips.white .windows-freely .link-mark{
+.windows.dialog-tips.white .windows-freely .i-mark{
 	border-top-color: #b7b7b7;
 }
 
@@ -413,7 +411,7 @@ body, html{
 	display: none;
 }
 
-.dialog-tips .windows-freely .link-mark {
+.windows-freely .i-mark {
 	overflow: hidden;
 	border-top-width: 30px;
 	width: 0;
@@ -424,15 +422,40 @@ body, html{
 	position: absolute;
 	bottom: -12px;
 	left: 10;
+	border-top-color: #2b2b2b;
 }
-.dialog-tips .windows-freely .link-mark{
+.dialog-tips .windows-freely .i-mark{
 	border-top-color:#83c365;
 }
-.dialog-tips.error .windows-freely .link-mark{
+.dialog-tips.error .windows-freely .i-mark{
 	border-top-color:#c9302c;
 }
-.dialog-tips.notice .windows-freely .link-mark{
+.dialog-tips.notice .windows-freely .i-mark{
 	border-top-color:#f0ad4e;
+}
+.windows .content.windows-freely.i-s-bottom .i-mark {
+	border-top-color:transparent;
+    border-bottom-color: #2b2b2b;
+    top: 2px;
+    bottom: auto;
+}
+.windows.dialog-tips .content.windows-freely.i-s-right .i-mark,
+.windows .content.windows-freely.i-s-right .i-mark {
+	border-top-color:transparent;
+    border-right-color: #2b2b2b;
+    left: -12px;
+    bottom: auto;
+    top: 20px;
+}
+.windows.dialog-tips .content.windows-freely.i-s-right .i-mark{
+    left: -14px;
+}
+.windows .content.windows-freely.i-s-left .i-mark {
+	border-top-color:transparent;
+    border-left-color: #2b2b2b;
+    right: -12px;
+    left: auto;
+    top: 20px;
 }
 /* 鼠标移入显示 */
 .hover-show-hand{

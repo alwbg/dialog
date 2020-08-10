@@ -48,10 +48,19 @@
 			function randomIndex(){
 				return position[((Math.random() * 100000) >> 0) % position.length]
 			}
-			var iHtml = '<span id="text" data-index="1" data-key="source" data-index-i="i" event-apple="1" event-apple-i="1" handle="data">测试获取DATA</span>\
-			<span class="loadings" handle="loadings">Request Text!</span>\
-			<span class="in" handle="in">点击</span>\
-			<input placeholder="..." type="text" class="input-style" handle="input-style"/><br/><br/><textarea  placeholder="..." cols="2" rows="6" class="textarea-style"></textarea><div>Hellow JS!离离原上草一岁一枯荣</div>'
+function times(fx, t){
+	var tmark = setInterval(function(){
+		if( --t < 0 ) {
+			return clearInterval(tmark);
+		}
+		dialog.runer(fx, null, t);
+	}, 1000);
+	return tmark;
+}
+			var iHtml = '<span id="text" data-bind="aaaaa" data-index="1" data-key="source" data-index-i="i" event-apple="1" event-apple-i="1" e-dialog-handle="data">测试获取DATA</span>\
+			<span class="loadings" e-dialog-handle="loadings">Request Text!</span>\
+			<span class="in" e-dialog-handle="in">点击</span>\
+			<input placeholder="..." type="text" class="input-style" e-dialog-handle="input-style"/><br/><br/><textarea  placeholder="..." cols="2" rows="6" class="textarea-style"></textarea><div>Hellow JS!离离原上草一岁一枯荣</div>'
             function run() {
                 var p = randomIndex();
                 var confirm = dialog.confirm('Notice!', iHtml, function(dialog, self) {
@@ -67,6 +76,12 @@
                 }, {
                     cs: 'inner:x .confirm-title x .confirm-cancel .confirm-content 70;',
                     last: function() {
+						console.log(this)
+						var self = this;
+						times(function(t){
+							self.aaaaa.html(t)
+						}, 100)
+						console.log(this.room.attr('aaa'))
 						var iMsgs;
 						this.click('data', function(e) {
 							iMsgs = [];
@@ -83,7 +98,7 @@
 							})
 						});
                         this.click('in', function() {
-                            dialog.tips('我刚被点击了inner:x .confirm-title x .confirm-cancel .confirm-content 70;inner:x .confirm-title x .confirm-cancel .confirm-content 70;inner:x .confirm-title x .confirm-cancel .confirm-content 70;', 600, this, function(){
+                            dialog.tips('我刚被点击了', 600, this, function(){
 								this.addClass('white');
 								// console.log(this,...arguments);
 							})
@@ -110,6 +125,7 @@
 						this.room.addClass('loading');
 					}
 				} ).addClass('simply');
+				return;
 				var room = loadingbox.room;
 				setTimeout(() => {
 					var css = room.css('width,height,left,top', 'number');

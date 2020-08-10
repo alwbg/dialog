@@ -3,7 +3,6 @@
  * -----------------------------------
  * - https://github.com/alwbg/dialog -
  * -----------------------------------
- * creation-time : 2020-05-14 16:43:11 PM
  * 提供弹窗,提示[左上,上中,右上,右下,下中,左下,中]位置显示,xx秒自动关闭功能
  * 支持全局和 AMD和CMD调用
  * update 2018-03-29
@@ -12,37 +11,45 @@
  * 'inner:左边距 上边距 右边距 下边距 中间选择器;animate:true|false 开始位置 结束位置;offset: 左 上 右 下;center:true'
  * )
  * 可以通过 dialog.push 添加和重写以上参数方法
- * dialog.push( 'auto', 'animate', function( current[, use,...]){} )
- * 
+ * dialog.push('auto', 'animate', function( current[, use,...]){} )
+ * update 2020-04
+ * 新增 -dialog.query(selector)[css, attr, find, each, ...];
+ * 	-dialog.addClass(target, class)
+ * 	-dialog.removeClass(target, class)
+ * 	-dialog.css(target, class[, val])
+ * 	-dialog.attr(target, prop[, val])
+ * 	-dialog.html(target[, html])
+ * 	-dialog.is(selector, target)
+ * 	-dialog.within(selector, target)
+ * creation-time : 2020-08-09 14:46:09 PM
  */
-;(function( global, factory ){
-	global[ 'global' ] = global;
-	if( typeof exports === 'object' ) {
+; (function (global, factory) {
+	global['global'] = global;
+	if (typeof exports === 'object') {
 		// factory( require, exports, module );
 	} else if (typeof define === 'function') {
 		//AMD CMD
-		define( 'dialog', factory );
+		define('dialog', factory);
 	} else {
 		var funcName = 'require';
-		if( funcName && !global[ funcName ] ) {
-			global[ funcName ] = function( id ) {
-				return global[ id ];
+		if (funcName && !global[funcName]) {
+			global[funcName] = function (id) {
+				return global[id];
 			};
 		};
-		var MODULE = { exports : {} };
-		factory( global[ funcName ] || function( id ) {
-			alert( '需要实现 require(),加载模块:"' + id + '"' );
-		}, MODULE.exports, MODULE );
-		global[ 'dialog' ] = MODULE.exports;
+		var Mo = { exports: {} };
+		factory(global[funcName] || function (id) {
+			alert('需要实现 require(),加载模块:"' + id + '"');
+		}, Mo.exports, Mo);
+		global['dialog'] = Mo.exports;
 	}
-}( this, function( require, exports, module ) {
-	var Count = 0;
+}(this, function (require, exports, module) {
+	var Nil;
+	var ID = 20160516;
+	var DialogCount = 0;
 	var ddoc = document.documentElement;
 	var isNotFixed = /ie\s*(6|5)/ig.test(navigator.userAgent);
-
-	var ID = 20160516;
-
-	var EVENT_KEY = 'query-event-index';
+	
 	var QUERY_ID = ID;
 
 	var r_ANYTHING = /\[object\s(\w+)\]/;
@@ -61,15 +68,16 @@
 	var r_NUMBER_VALUE = /(height|width|top|left|bottom|right|size|radius|padding|margin)(?:\=|$)/i/*数值属性*/
 
 	var r_SET_VALUE_OFFSET = /^\s*([\+\-\*\/])=(\d+)\w*/;
-	var r_HasIDSel = /^#(\d[^\s]*)\s*/;
 	var r_IsNotCenter = /(?:^|;\s*)center\s*:\s*false/;
+	var r_IsNumber = /^\d+(?:\.\d+)?$/;
 
-	var Nil;
 	var SPACE = '';
 	var DOT = '.';
 	var S_PX = 'px';
 	var S_$1 = '-$1';
-
+	var $1 = '$1';
+	
+	var EVENT_KEY = 'e-dialog';
 	var s_DATA = 'data';
 	var s_AUTO = 'auto';
 	var TAG_NAME = 'div';
@@ -81,7 +89,11 @@
 	var s_OFFSETHEIGHT = 'offsetHeight';
 	var s_SCROLLHEIGHT = 'scrollHeight'
 
+	var s_AUTOATTRS = 'inner: 0 0 0 0 .confirm-content 60;';
+
 	var s_NODELIST = '[object NodeList]';
+	/* 兼容IE事件属性 */
+	var ePickLine = 'target;srcElement=>target';
 
 	var ALL = '*';
 
@@ -89,9 +101,11 @@
 
 	var F_List = ["getAttribute", "setAttribute"];
 	var aQuerySimplyOrMulti = ['querySelector', 'querySelectorAll'];
-	var aVH = ['innerHTML', 'value'];
+	var aIOrV = ['innerHTML', 'value'];
 
 	//var isBlur      	= /(?:trident\/\d*.*rv[^\w]*\d*|msie\s*(?:7|8|9|10)|webkit)/i.test( navigator.userAgent );
+
+	var isIE  = /(?:trident\/\d*.*rv[^\w]*\d*|msie\s*)/i.test( navigator.userAgent );
 	var fixed = isNotFixed ? 'absolute' : 'fixed';
 
 	// 配置
@@ -103,7 +117,21 @@
 	var EMPTY_ARRAY = [];
 
 	var EMPTY_ARRAY_SLICE = EMPTY_ARRAY.slice;
-
+	// 不含有bind的扩展
+	if (!Function.prototype.bind) {
+		Function.prototype.bind = function() {
+			var bindFx = this;
+			// fun.bind.call(!Func)
+			if (!(bindFx instanceof Function)) throw 'This is not a Function!';
+			var args = iList2Array(arguments);
+			var host = args.shift();
+			return function() {
+				var argument = iList2Array(arguments);
+				Array.prototype.unshift.apply(argument, args);
+				return bindFx.apply(host, argument);
+			}
+		};
+	}
 	/**
 	 * 获取字符串类型
 	 * @param  {object}   object 
@@ -127,9 +155,9 @@
 	var isNodeList = function (nl) {
 		return iTypeTo(nl) == s_NODELIST || (nl instanceof Array);
 	}
-
-	function nodeViewAttr(tagName) {
-		return aVH[+/input/i.test(tagName)]
+	/* 判断是否 */
+	function iContent4Element(tagName) {
+		return aIOrV[+/input/i.test(tagName)]
 	}
 	/**
 	 * 转换数组
@@ -170,7 +198,7 @@
 			room || (room = {});
 			var css = {},
 				isWidth, other,
-				rWidth = this.rWidth;
+				rWidth = this.rWidth, sim;
 			var positions = position.match(this.rPosition);
 
 			for (var i = 0, length = positions.length; i < length; i++) {
@@ -214,8 +242,8 @@
 			'#': [/#/, SPACE, ' id="$1"'],
 			'.': [/\./, SPACE, ' class="$1"'],
 			'[': [/\[/, SPACE, ' $1'],
-			'tag': [/tag/g, 'span', '$1'],
-			'{': [/#\*i\*#/g, SPACE, '$1']
+			'tag': [/tag/g, 'span', $1],
+			'{': [/#\*i\*#/g, SPACE, $1]
 		},
 		INDEXS: ['tag', '.', '#', '[', '{'],
 		factory: function () {
@@ -308,7 +336,6 @@
 				switch (sim) {
 					case INNEREND:
 					// inInnerMark--;
-					// console.log(inInnerMark, sim)
 					case ']':
 						break;
 					case CLAZZ /*.*/:
@@ -354,6 +381,7 @@
 	function selector2Html(selector) {
 		return iSelector2Html.toHtml(selector)
 	}
+
 	var rMapKey = {};
 	/**
 	* 获取指定前缀的属性值
@@ -366,82 +394,114 @@
 		var attrs;
 		prefix || (prefix = s_DATA);
 		var execz = hasprefix != true ? function (x) {
-			return prefixReg.test(x), $css2js(RegExp.$1);
+			return prefixReg.test(x), css2js(RegExp.$1);
 		} : function (x) {
 			return x;
 		}
-		if (prefix == s_DATA) {
+		if (prefix == s_DATA && target.dataset) {
 			attrs = target.dataset;
 		} else {
 			var prefixReg = rMapKey[prefix] || (rMapKey[prefix] = prefix ? new RegExp('^' + prefix + '-(.+)', 'i') : /.*/);
 			attrs = target.attributes;
-			var json = {};
-			each(attrs, function (k, v, json, prefixReg, execz) {
-				if (prefixReg.test(v.name)) {
-					json[execz(v.name)] = v.value
+			var json = {}, v;
+			for (var index in attrs) {
+				if (Object.hasOwnProperty.call(attrs, index)) {
+					v = attrs[index];
+					if (prefixReg.test(v.name)) {
+						json[execz(v.name)] = v.value;
+					}
 				}
-			}, json, prefixReg, execz);
+			}
 			attrs = json;
 		}
-		return picker(attrs, $css2js(key || ALL));
+		return picker(attrs, css2js(key || ALL));
+	}
+	/**
+	 * 设置 和 获取 Node 属性
+	 * @param {Node} target 
+	 * @param {String} key 
+	 * @param {Object} val 
+	 */
+	function iSetGetAttr(target, key, val) {
+		var isGet = isNil(val);
+		var fname = F_List[+!isGet];
+		var isNode = target[fname];
+		if (isGet) {
+			var data = (isNode && target[fname](key)) || target[key];
+			return isNil(data) ? null : data;
+		};
+		isNode && isNil(target[key]) ? target[fname](key, val) : (target[key] = val);
 	}
 	// 获取对象属性值
 	function iAttr(target, key, val) {
-		var isGet = val === Nil;
+		var ranks;
 		if (isString(key)) {
-			var fun = F_List[+!isGet];
-			// 获取操作方法
-			if (target[fun] instanceof Function) {
-				if (isGet) return target[fun](key);
-				else target[fun](key, val);
-			} else {
-				return iAttr.attr.call(target, key, val);
-			}
+			if (isNil(val)) return iSetGetAttr(target, key);
+			ranks = {};
+			ranks[key] = val;
 		} else {
-			each(key, function (k, v, target) {
-				target[F_List[1]](k, v);
-			}, target);
+			ranks = key;
 		}
+		each(ranks, function (k, v, target, attr) {
+			attr(target, k, v);
+		}, target, iSetGetAttr);
 	}
-	iAttr.attr = function (key, val) {
-		if (val === Nil) return this[key];
-		else this[key] = val;
+	/**
+	 * @see css2js
+	 * @see r_CSS2JS
+	 * @param {String} source 源
+	 * @param {String} $1 匹配的正则内的(xx)
+	 * @param {Int} index 开始索引
+	 */
+	function iFxInnerReplace(source, $1, index) {
+		return $1.toUpperCase();
 	}
-
 	/**
 	 * css格式输出JS格式
 	 * @param  {String} css data-name-show
 	 * @return {String} js dataNameShow
 	 */
-	function $css2js(css) {
-		return css.replace(r_CSS2JS, function (source, $1, index) {
-			return $1.toUpperCase();
-		})
+	function css2js(css) {
+		return css.replace(r_CSS2JS, iFxInnerReplace);
 	}
 
-	function $js2css(css) {
+	function js2css(css) {
 		return css.replace(r_JS2CSS, S_$1).toLowerCase();
 	}
+	/* 单个对象设置 */
 	function iSetStyle(target, key, value, suffix) {
 		if (target.nodeType == 1) {
-			if (r_CSS2JS.test(key)) key = $css2js(key);
+			if (r_CSS2JS.test(key)) key = css2js(key);
 			if (r_NUMBER_VALUE.test(key)) {
 				if (r_SET_VALUE_OFFSET.test(value)) {
 					value = iRuner(mOffsetFuncMap[RegExp.$1], Nil, RegExp.$2, _style(target, key, s_NUMBER)[key] >> 0);
 				}
-				if (!isNaN(+value)) value = value + (suffix || S_PX);
+				if (r_IsNumber.test(value)) value = value + (suffix || S_PX);
 			}
 			target.style[key] = value;
 		}
 	}
-	function iCss(target, keys, valueOrSuffix) {
-		if (isString(keys)) {
-			return _style(target, keys, valueOrSuffix);
+	/* 设置 获取 指定样式 */
+	function iCssGetSet(styleName, v, target) {
+		if (isString(styleName)) {
+			return isNil(v) || (r_NUMBER_VALUE.test(styleName) && v == s_NUMBER)
+				?
+				/* 获取 */
+				(
+					v = isSimplyData(_style(target, styleName, v), styleName), 
+					isNil(v) ? null : v
+				)
+				:
+				/* 设置属性 */
+				iSetStyle(target, styleName, v);
 		} else {
-			each(keys, function (k, v, target, suffix) {
-				iSetStyle(target, k, v, suffix);
-			}, target, valueOrSuffix)
+			each(styleName, function (styleName, v, target, suffix) {
+				iSetStyle(target, styleName, v, suffix);
+			}, target, v)
 		}
+	}
+	function iCss(target, keys, valueOrSuffix) {
+		return iCssGetSet(keys, valueOrSuffix, target);
 	}
 	/**
 	 * 实现继承扩展 merge( O1, O2, O3[,...], data# 要扩展数据 #, cover# 是否覆盖添加 # )
@@ -573,7 +633,7 @@
 						k = fc(k);
 					}
 					rData = iRuner(filter, Nil, pi || v, k);
-					data[pi || v] = rData === Nil ? k : rData;
+					data[pi || v] = isNil(rData) ? k : rData;
 					return true;
 				}
 			}, val, value[1], data, type, filter);
@@ -584,7 +644,7 @@
 	}
 
 	function picktype(O) {
-		return iTypeTo(O).replace(r_ANYTHING, '$1');
+		return iTypeTo(O).replace(r_ANYTHING, $1);
 	}
 	// 
 	var OBJECT = picktype(OBJECT_EMPTY);
@@ -598,9 +658,12 @@
 	function isNil(val) {
 		return val === Nil;
 	}
+	function isFunction(fn) {
+		return fn instanceof Function;
+	}
 	// 遍历Set Map
 	function MS(source, fn, args) {
-		fn instanceof Function || (fn = function () { });
+		isFunction(fn) || (fn = function () { });
 		source.forEach(function (v, k) {
 			fn.call(this, k, v);
 		}, this);
@@ -618,7 +681,7 @@
 		},
 		'Object': function (source, fn, args) {
 			for (var key in source) {
-				if (source.hasOwnProperty(key) && EACH.changeWay.call(this, key, args, source, fn)) return this.ret;
+				if (source.hasOwnProperty && source.hasOwnProperty(key) && EACH.changeWay.call(this, key, args, source, fn)) return this.ret;
 			}
 		},
 		'Set': MS,
@@ -631,8 +694,7 @@
 	 * @Time   2018-11-14
 	 */
 	function each(source, func, context) {
-		if (func instanceof Function);
-		else return;
+		if (!isFunction(func)) return;
 		//挑选处理方方法
 		return (EACH[picktype(source)] || EACH[OBJECT]).call({
 			context: context
@@ -647,7 +709,7 @@
 	}, RuleSort)
 	function dialogAutoRules(list, rules) {
 		!rules && (rules = []);
-		each(list, function (k, val, list, RuleSort,/* 临时变量 */ kv, v, vs) {
+		each(list, function (k, val, list, RuleSort,/* 临时变量 */ kv, v, vs, vk) {
 			kv = val.split(r_SPLIT_KV);
 			vk = kv[0];
 			if (!vk) {
@@ -674,7 +736,7 @@
 	 */
 	function picker(source, rule, type, filter) {
 		if (rule == ALL) return source;
-		if (!isString(rule) || source === Nil) return {};
+		if (!isString(rule) || isNil(source)) return {};
 		var rainbox = [],
 			isArray = true;
 		source instanceof Array || (source = [source], isArray = false);
@@ -689,7 +751,7 @@
 		 * @param {String|Undefined} attr 属性 'height;line-height=>h'
 		 **/
 		function (dom, attr, type) {
-			return picker(document.defaultView.getComputedStyle(dom, SPACE), attr || ALL, type);
+			return picker(dom.nodeType == 1 ? document.defaultView.getComputedStyle(dom, SPACE) : {}, attr || ALL, type);
 		} : function (dom, attr, type) {
 			return picker(dom.currentStyle, attr || ALL, type);
 		}
@@ -702,12 +764,11 @@
 		this.length = this.result.length;
 		this.animateTasks = [];
 		/* 设置观察者 */
-		Object.defineProperty && Object.defineProperty(this, '0', {
-			// set: set,
+		iDefineProperty(this, 0, {
 			get: function () {
 				return this.result[0];
 			}
-		});
+		}, this);
 	}
 
 	/**
@@ -723,24 +784,19 @@
 			this.result = [sel];
 		} else {
 			var ischars = isString(sel);
+			var result;
 			if (ischars && /<\w[^<\>]*>/i.test(sel)) {
 				var house = iCreateElement();
 				house.innerHTML = sel;
 				this.result = iList2Array(house.childNodes);
 				return this;
 			}
-			if (ischars && r_HasIDSel.test(sel)) {
-				context = document.getElementById(RegExp.$1);
-				sel = sel.replace(r_HasIDSel, SPACE);
-				if (sel == SPACE) return sel;
-			}
 			if (isString(context) && context != SPACE) {
 				context = Selector.call(this, context, Nil, multi);
 			}
-			var result;
 			if (context && (isNodeList(result = context.result || context))) {
 				var _ = [];
-				each(result, function (k, v, self, items, sel) {
+				each(result, function (_, v, self, items, sel) {
 					v = Selector.call(self, sel, v, multi);
 					v = iList2Array(v.result);
 					items.push.apply(items, v);
@@ -757,13 +813,13 @@
 		}
 		return this;
 	}
+
 	function iExecSimply(query, key, value, filter, _/* each */) {
 		return query.each(function (i, target, value, _, query, isstring) {
-			if (isstring) {
-				return iRuner(filter, Nil, key, value, target, query, isstring, value);
-			} else {
-				return _(key, filter, target, query, isstring, value);
-			}
+			return isstring ?
+				iRuner(filter, Nil, key, value, target, query, isstring, value)
+				:
+				_(key, filter, target, query, isstring, value);
 		}, value, _, query, isString(key))
 	}
 	var mOffsetFuncMap = {};
@@ -772,34 +828,35 @@
 	}, mOffsetFuncMap);
 
 	var CLASSMAP = {};
+	function rClassInElement (clazz, gl) {
+		gl || (gl = SPACE);
+		var cName = clazz + gl;
+		return CLASSMAP[cName] || (CLASSMAP[cName] = new RegExp('(?:(?:^|\\s+)' + clazz + '(?:\s*$|(\\s)+))', gl || 'g'));
+	}
 	function iClass(clazz, target, isadd) {
 		if (!target || target.nodeType != 1) return;
 		var sim = {
 			clazz: target.className
 		};
-		each(clazz.split(/\s+/), function (k, v, cMap, target, r) {
+		each(clazz.split(/\s+/), function (k, v, target, r) {
 			if (v == SPACE) return;
-			if (v in cMap) {
-				r = cMap[v];
-			} else {
-				r = cMap[v] = new RegExp('(?:(?:^|\\s+)' + v + '(?:\s*$|(\\s)+))', 'g');
-			}
+			r = rClassInElement(v);
 			var cls = target.clazz;
 			if (isadd != Nil) {
 				if (cls.search(r) < 0) {
 					target.clazz = cls + ' ' + v;
 				}
-			} else target.clazz = cls.replace(r, '$1');
-		}, CLASSMAP, sim);
+			} else target.clazz = cls.replace(r, $1);
+		}, sim);
 		target.className = sim.clazz;
 	}
 
-	function iHtmlOrAppend(list, element, execFunc, append, isChars) {
+	function iHtmlOrAppend(list, element, execFunc, append, isSimply) {
 		each(list, function (k, v, element, ef, _) {
 			var items;
 			element.nodeType == 1 && (element = [element]);
 			if (
-				isChars && (items = [element])
+				isSimply && (items = [element])
 				||
 				isNodeList(items = element)
 				||
@@ -815,7 +872,7 @@
 				)
 			) {
 				if (append != true) {
-					v[nodeViewAttr(v.tagName)] = SPACE;
+					v[iContent4Element(v.tagName)] = SPACE;
 				}
 				_(items, function (k, v, room, execFunc) {
 					execFunc(room, v);
@@ -825,60 +882,103 @@
 	}
 	var s_QueryEventKey = '[' + EVENT_KEY + ']';
 	function iRemoveEvent(house, fx) {
-		house.find(s_QueryEventKey).each(function (k, v, ia, house, _) {
-			var key = ia(v);
-			_(house.events[key], function (k, v, target, _) {
+		var child
+		if (fx === true) {
+			child = house;
+			fx = Nil;
+		} else {
+			child = house.find(s_QueryEventKey);
+			// 添加上下文到查询列表
+			Array.prototype.unshift.apply(child.result, house.result);
+		}
+		child.each(function (k, v, ia, house, _) {
+			var key = ia(v), es = house.events[key];
+			_(es, function (k, v, target, _, e) {
+				delete e[k];
 				_(v, function (k, v, target, name) {
-					target.removeEventListener(name, v);
+					iEvents.removeEventListener(target, name, v);
 				}, target, k)
-			}, v, _);
+			}, v, _, es);
 			delete house.events[key];
 		}, iGetEventMark, house, each);
 
 		house.each(fx);
 	}
-	function isSimplyData(data, key){
-		var kMap, ks;
-		kMap = this._KeysMap || (this._KeysMap = {});
-		return kMap[key] != Nil || !r_S_SEL.test(key) ? (
-			ks = (kMap[key] || 
+	var _KeysMap = {};
+	function isSimplyData(data, key) {
+		var ks;
+		return _KeysMap[key] != Nil || !r_S_SEL.test(key) ? (
+			ks = (_KeysMap[key] ||
 				(
 					ks = key.split(r_S_KV),
-					kMap[key] = ks[1] || ks[0]
+					_KeysMap[key] = ks[1] || ks[0]
 				)
 			), data[ks]
 		) : data
+	}
+	var mElementTagClassId = {
+		'.': function (k, target) {
+			return rClassInElement(k, 'i').test(target.className);
+		},
+		'[': function (k, target) {
+			return iAttr(target, k) != null;
+		},
+		'#': function (k, target) {
+			return target.id == k;
+		},
+		tag: function (k, target) {
+			return k.toUpperCase() == target.tagName
+		},
+		'{': function () { return false }
+	}
+	/*  */
+	function iElementsIs(targets, sel) {
+		var elements;
+		if (!/\s+/.test(sel)) {
+			elements = [];
+			var checkrank = [];
+			var code = iSelector2Html.xcode(sel, 0);
+			each(code.parent, function (k, v, checkrank) {
+				if (v.length) {
+					checkrank.push(function (k, v) {
+						/* 判断选择器, 如果匹配返回 undefined, 否则返回相应的的数据 @see iRuner([Fcuns,...]) */
+						return v = iRuner(this, Nil, k, v), v === true ? Nil : v;
+					}.bind(mElementTagClassId[k], (k == DOT && v.shift(), v.join(SPACE))));
+				}
+			}, checkrank);
+			each(targets instanceof Array ? targets : [targets], function (k, target, checkrank, elements) {
+				if (isNil(iRuner(checkrank, Nil, target))) {
+					elements.push(target);
+				}
+			}, checkrank, elements);
+		}
+		return elements
+	}
+	// Node是否是选择其描述的
+	function iElementIs (sel, target) {
+		return iElementsIs(target, sel).length ? target : Nil;
 	}
 	Query.prototype = {
 		events: {},
 		attr: function (key, val) {
 			return iExecSimply(this, key, val, function (k, v, target) {
-				var isGet = v == Nil;
-				var fname = F_List[+!isGet];
-				var isNode = target[fname]
-				if (isGet) {
-					return (isNode && target[fname](k)) || target[k];
-				};
-				(isNode && target[fname](k, v)) || (target[k] = v);
+				return iSetGetAttr(target, k, v);
 			}, each);
 		},
 		/**
-		 * 
 		 * @param {JSON|String} key 
 		 * @param {*} val 
 		 */
 		css: function (key, val) {
-			// console.log('css:::',...arguments)
-			// var isSimply = !r_S_SEL.test(key);
-			return iExecSimply(this, key, val, function (k, v, target) {
-				if (v == Nil || (r_NUMBER_VALUE.test(k) && v == s_NUMBER)) {
-					return isSimplyData(_style(target, k, v), k);
-				}
-				iSetStyle(target, k, v, Nil);
-			}, each);
+			return iExecSimply(this, key, val, iCssGetSet, each);
 		},
-		find: function (sel, context, multi) {
-			return new Query(sel, this.result);
+		is: function (sel) {
+			return iElementsIs(this.result, sel).length > 0;
+		},
+		find: function (sel/* , context, multi */) {
+			var child = new Query(sel, this.result);
+			child.length = Array.prototype.unshift.apply(child.result, iElementsIs(this.result, sel));
+			return child;
 		},
 		addClass: function (clazz) {
 			return this.each(function (k, target, clazz, _) {
@@ -900,29 +1000,33 @@
 				target.appendChild(v);
 			}, true), this;
 		},
+		appendTo: function (element) {
+			return new Query(element).append(this.result), this;
+		},
 		html: function (html) {
 			var tag, source = this.result;
-			return html === Nil
+			return isNil(html)
 				?
 				(
 					tag = source[0],
-					tag && tag[nodeViewAttr(tag.tagName)]
+					tag && tag[iContent4Element(tag.tagName)]
 				)
 				:
 				(iHtmlOrAppend(source, html, function (target, v) {
-					var fx = nodeViewAttr(target.tagName);
+					var fx = iContent4Element(target.tagName);
 					v.nodeType && target.appendChild(v) || (target[fx] = v);
-				}, false, isString(html)/* 字符串 */), this);
+				}, false, isString(html)/* 字符串 */ || !isNaN(+html) /* Number or Boolean */), this);
 		},
 		data: function (key, prefix) {
-			return this.each(function (k, target, _, keys, prefix, iSDate, rJsonSring) {
-				var rData = iSDate(_(target, keys, prefix), key);
+			return this.length ? this.each(function (_, target, attrs, keys, prefix, iSDate, rJsonSring) {
+				var rData = iSDate(attrs(target, keys, prefix), key);
 				return !isNil(key) && rJsonSring.test(rData) ? JSON.parse(rData) : rData
-			}, iAttrs, key, prefix, isSimplyData, /^(?:\[.*\]|{.*})$/);
+			}, iAttrs, key, prefix, isSimplyData, /^(?:\[.*\]|{.*})$/) : Nil;
 		},
 		stop: function () {
 			return /* this.clearanimate = true, */ this;
 		},
+		unbind: function () { return iRemoveEvent(this, true), this },
 		animate: function (attributes, speed, callback) {
 			speed || (speed = 600);
 			var tasks = this.animateTasks;
@@ -931,13 +1035,12 @@
 				tasks[0].run();
 			}
 			return this;
-
 		},
-		on: function () {
-			return this.each();
+		on: function (name) {
+			return iEvent(name)
 		},
 		trigger: function (name) {
-			return this.each(function (k, v, name) {
+			return this.each(function (_, v, name) {
 				try {
 					var event = document.createEvent("Events");
 					event.initEvent(name, true, true);
@@ -951,11 +1054,15 @@
 		 * @param {Function} 0 处理方法
 		 */
 		each: function () {
-			var props = iList2Array(arguments);
+			var props = iList2Array(arguments), ret;
 			props.unshift(this.result);
-			return each.apply(this, props) || this;
+			return isNil((ret = each.apply(this, props))) ? this : ret;
 		}
 	}
+
+	Query.prototype.val = Query.prototype.html;
+	Query.prototype.off = Query.prototype.unbind;
+
 	function AnimateTask(rank, args) {
 		this.rank = rank;
 		this.args = args;
@@ -1014,16 +1121,14 @@
 		each.apply(this, args);
 	}
 
-	Query.prototype.val = Query.prototype.html;
-
 	each(['hide', 'show'], function (k, v, pro) {
 		pro[v] || (pro[v] = function () {
 			return this.each(function (k, v, hideshow) {
 				var isHide = hideshow == 'hide';
-				var display = isHide ? iCss(v, 'display').display : iAttr(v, 'old-display');
-				isHide && (iAttr(v, 'old-display', display), display = 'none');
+				var display = isHide ? iCss(v, 'display') : iAttr(v, 'o-display');
+				isHide && (iAttr(v, 'o-display', display), display = 'none');
 				iCss(v, {
-					'display': display
+					'display': display || SPACE
 				})
 			}, v)
 		});
@@ -1051,20 +1156,58 @@
 		if (!ek) iAttr(v, EVENT_KEY, ek = ++QUERY_ID);
 		return ek;
 	}
+	/* ie事件代理 */
+	function iEEventTrigger (fc, e) {
+		var ev = picker(e, ePickLine);
+		merge(ev, e);
+		iRuner(fc, this, ev);
+	}
 	function iEvent(name) {
 		return function (fc) {
-			each(this.result, function (k, v, ename, fc, root, _, _class) {
+			each(this.result, function (_k, v, ename, fc, root, _, _class) {
+				if (isIE) fc = iEEventTrigger.bind(v, fc);
 				var es = root.events;
 				var el = iGetDataByLine(_(v) + '.' + ename, es, []);
 				el.push(fc);
-				v.addEventListener(ename, fc);
+				// v.addEventListener(ename, fc);
+				iEvents.addEventListener(v, ename, fc);
 				_class(s_HOVER_HAND, v, true);
 			}, name, fc, this, iGetEventMark, iClass);
 			return this;
 		}
 	}
-	each(['resize', 'click', 'keydown', 'keyup', 'focus', 'change'], function (k, v, pro) {
-		pro[v] = iEvent(v);
+	function iDefineProperty(item, prop, descriptor, context){
+		try {
+			Object.defineProperty(item, prop, descriptor)
+		} catch (e) {
+			item[prop] = iRuner(descriptor.get, context);
+		}
+	}
+	var iEvents = {};
+	each({
+		addEventListener: ['addEventListener', 'attachEvent'],
+		removeEventListener: ['removeEventListener', 'detachEvent']
+	}, function (k, v, g, kit, prefix) {
+		var index = +!g[k];
+		kit[k] = function(item, type, listener, useCapture) {
+			item[v[index]](prefix[index] + type, listener, useCapture);
+		}
+	}, global, iEvents, ['', 'on'])
+	each([
+		'resize', 'click', 'focus', 'blur', 'change', 'scroll', 'load', 'hashchange', 'error',
+		/* PC端 */
+		'mousedown', 'mouseenter', 'mouseleave', 'mousemove', 'mouseout', 'mouseover', 'mouseup', 'mousewheel',
+		'keydown', 'keypress', 'keyup',
+		/* 移动端 */
+		'touchcancel', 'touchend', 'touchmove', 'touchstart',
+		/* html5 */
+		'animationend', 'animationiteration', 'animationstart'
+	], function (k, v, pro) {
+		iDefineProperty(pro, v, {
+			get: function () {
+				return iEvent(v)
+			}
+		})
 	}, Query.prototype);
 	// 
 	var iHtmlElement = iQuery(ddoc);
@@ -1091,19 +1234,22 @@
 	 * @param {JSON} args 配置信息
 	 */
 	function Dialog(args) {
-		merge(this, args);
 		this.id = ID++;
-		this._resize_ = [];
-		this._close_ = [];
-		this.offset = {};
 		//窗口关联, 当主窗口关闭时,先调用link对应的窗口remove方法后在执行当前remove
-		this.link = null;
+		this.link = Nil;
+		this.offset = {};
+		this._close_ = [];
+		this._resize_ = [];
 		Dialogs[this.id] = this;
+
+		merge(this, args);
+
 		DialogsRanks.push(this);
 
 		args.root.attr({
 			id: this.id
 		});
+		this.bind();
 		this.events = { click: {} };
 		this.isOwnSetting = iRuner(this.callback, Dialogs, this.id, this);
 	}
@@ -1121,9 +1267,9 @@
 		},
 		resize: function (time) {
 			var self = this;
-			return time ? setTimeout(function () {
-				$resize(self)
-			}, time) : $resize(self), self;
+			return iLazyRun(function () {
+				$resize(self);
+			}, time), self;
 		},
 		glass: function (show) {
 			this.root.attr('is-blur', +show);
@@ -1131,6 +1277,9 @@
 		},
 		addClass: function (clazz) {
 			return this.root.addClass(clazz), this;
+		},
+		removeClass: function (clazz) {
+			return this.root.removeClass(clazz), this;
 		},
 		timer: function () {
 			if (+this.timeout) {
@@ -1146,19 +1295,58 @@
 		click: function (key, factory) {
 			return this.push('click', key, factory), this;
 		},
+		proxy: function (target, fx) {
+			var eventid = QUERY_ID++;
+			target instanceof Query ?
+				target.attr(EVENT_HANDLE, eventid)
+				:
+				iAttr(target, EVENT_HANDLE, eventid);
+			this.onclose(function(id){
+				this.events.click[id] = null;
+			}.bind(this, eventid))
+			return this.click(eventid, fx);
+		},
 		destroy: function () {
-			iRuner(this._close_);
-			Count--;
-			this.root.remove();
-			delete Dialogs[this.id];
-			if (Count <= 0)
-				iHtmlElement.css({
-					'overflow': overflow
-				});
-			if (+this.root.attr('is-blur')) this.glass();
+			var self = this;
+			self.cleartime();
+			self.bg.stop(true, true).animate({
+				opacity: .1
+			}, 10);
+			var config = {
+				css: {
+					top: '-=25px',
+					opacity: .5
+				},
+				speed: 400
+			}
+			merge(config, self.destroyConfig, true);
+			self.room.stop(true, true).animate(config.css, config.speed, function () {
+				iRuner(self._close_, self);
+				DialogCount--;
+				self.root.remove();
+				delete Dialogs[self.id];
+				if (DialogCount <= 0)
+					iHtmlElement.css({
+						'overflow': overflow
+					});
+				if (+self.root.attr('is-blur')) self.glass();
+				each(self, function (k) {
+					this[k] = null;
+				}, self);
+			});
 		},
 		cleartime: function () {
 			clearTimeout(this.times);
+		},
+		bind: function () {
+			this.room.find('[data-bind]').each(function (_, v, dia) {
+				var dbind = iAttr(v, 'data-bind');
+				iDefineProperty(dia, dbind, {
+					get: function () {
+						return iQuery(v, this.root);
+					}
+				}, dia)
+			}, this);
 		},
 		runer: iRuner
 	};
@@ -1167,7 +1355,13 @@
 	 */
 	function $center(id, position, dia, user) {
 		var dialog = iQuery(id);
-		var css = !user && dia.isOwnSetting ? {} : iPosition.trigger(position, $pickWidthHeight(dialog.room || dialog), SCREEN);
+		var css = !user && dia.isOwnSetting
+			? {} :
+			iPosition.trigger(
+				position,
+				$pickWidthHeight(dialog.room || dialog),
+				SCREEN
+			);
 		css.zIndex = 10;
 		css.position = fixed;
 		dialog.css(css);
@@ -1187,25 +1381,39 @@
 	// 创建基础DOM
 	var HTMLS = selector2Html('div.windows>div.content+div.bg');
 	// 创建确认对话框DOM结构
-	var CONFIRM_HTML = selector2Html('div.confirm>div.confirm-title{标题}+div.confirm-content{内容}+span.confirm-cancel[handle="close"]{取消}+span.confirm-submit[handle="submit"]{确定}+span.confirm-cancel.close[handle="close"]{×}');
+	var CONFIRM_HTML = selector2Html('div.confirm>div.confirm-title{标题}+div.confirm-content{内容}+span.confirm-cancel{取消}+span.confirm-submit{确定}+span.confirm-cancel.close{×}');
 
 	var CLOSE_HTML = selector2Html('span.close{×}');
 
 	String.prototype.buildHtml = function (isSelector) {
 		return isSelector ? selector2Html(this) : giveUHtmlBySelector(this);
 	}
+
+	var EVENT_HANDLE = 'e-dialog-handle';
+	function iFindEventParent(target) {
+		var ret = {};
+		while (target) {
+			if (handle = iAttr(target, EVENT_HANDLE)) {
+				ret.name = handle;
+				ret.target = target;
+				break;
+			}
+			target = target.parentNode;
+		}
+		return ret;
+	}
 	/**
 	 * 显示Dialog
 	 * @param  {String} mode 要显示的窗体内容
 	 * @param  {Function} fx 回调
 	 * @param  {Number} time x秒后自动消失
-	 * @return {Query}       
+	 * @return {Dialog}       
 	 */
 	function iDialog(mode, fx, time, position, show) {
 		var args = iList2Array(arguments);
 		var callback = args.shift();
 		var Md;
-		if (!(callback instanceof Function)) {
+		if (!isFunction(callback)) {
 			Md = callback;
 			callback = args.shift();
 			if (!callback) callback = new Function;
@@ -1227,23 +1435,24 @@
 		};
 		root.css(css);
 		iHtmlElement.append(root);
-		Count++;
-
+		DialogCount++;
+		/* if position is Query , take the frist */
+		position instanceof Query && (position = position[0]);
 		var positionIsDom = !isString(position) && position && position.nodeType == 1;
 
 		var dialog = new Dialog({
-			root: root,
-			room: room,
 			bg: bg,
-			position: positionIsDom ? Nil : position,
+			room: room,
+			root: root,
 			callback: callback,
+			position: positionIsDom ? Nil : position,
 			timeout: time
 		});
-
 		/* 追加点击事件 */
 		root.click(function (e) {
-			var handle = iAttr(e.target, 'handle');
-			iRuner(dialog.events.click[handle], e.target, e);
+			var target = picker(e, ePickLine).target;
+			var ev = iFindEventParent(target);
+			iRuner(dialog.events.click[ev.name], ev.target, e);
 		}).removeClass(s_HOVER_HAND);
 
 		if (positionIsDom) {
@@ -1252,51 +1461,117 @@
 				slow = show.slow;
 				_position = show.position;
 			}
-			// iRepainting(dialog, true);
 			(+slow) && room.hide();
-			var _target = position;
-			var top, height;
-
 			room.addClass('windows-freely');
-			room.append(iSelector2Html.toHtml('.link-mark'));
-
-			function _resize() {
-				var css = _target.getBoundingClientRect();
-				height = SCREEN.height;
-				var vosh = room.attr(s_OFFSETHEIGHT);
-				if (!_position || height - css.top - css.height < vosh) {
-					top = css.top - 2 - vosh - 7
-				} else {
-					top = css.top + css.height + 2
-				}
-				room.css({
-					top: Math.max(top, 0),
-					left: css.left
-				})
-				return true;
+			room.append(iSelector2Html.toHtml('.i-mark'));
+			var callRoot = {
+				index: 1,
+				offset: 10,
+				room: room,
+				target: position,
+				position: _position,
+				iMark: room.find('.i-mark')
 			}
-			dialog.onresize(_resize);
-
-			if (+slow) {
-				setTimeout(function () {
-					room.show();
-					_resize()
-				}, slow);
-			} else {
-				_resize();
-			}
-
+			dialog.onresize(function () {
+				dialog.bg.css(SCREEN);
+				return iResize.call(callRoot), true;
+			})
+			/* 是否延迟加载 */
+			iLazyRun(function () {
+				room.show();
+				dialog.resize();
+			}, slow);
 		} else {
 			iUserEventMap.auto.mix.animate(dialog, !dialog.isOwnSetting);
 		}
 		dialog.timer();
+		if (isIE) {
+			iQuery('body').append(root);
+		}
 		return dialog;
 	};
+
+	var aPosition = ['i-s-left', SPACE, 'i-s-right', 'i-s-bottom'];
+	var iDialogMinHeight = 50;
+	/**
+	 * 重置位置
+	 * #this{
+	 * 		target: 目标,
+	 * 		room: 当前提示窗
+	 * 		index: 上次位置
+	 * 		offset: 偏移量
+	 * 		position: 是否
+	 * }
+	 */
+	function iResize() {
+		var top, left;
+		var tRect = this.target.getBoundingClientRect();
+		var room = this.room;
+		var index = this.index;
+		var iMOffset = this.offset;
+		/* 指向目标三角箭头 */
+		var iM = this.iMark;
+		var rHeight = room.attr(s_OFFSETHEIGHT);
+		var rWidth = room.attr(s_OFFSETWIDTH) + iMOffset;
+		/* ie低版本不含有 height, width */
+		var tHeight = tRect.height;
+		tHeight = (tHeight == Nil ? tRect.bottom - tRect.top : tHeight) >> 0;
+		var tWidth = tRect.width;
+		tWidth = (tWidth == Nil ? tRect.right - tRect.left : tWidth) >> 0;
+
+		var rStyle = {}, mStyle = {},
+			rectTH = tRect.top + tHeight,
+			rectLW = tRect.left + tWidth;
+		/* 取消上次位置 */
+		room.removeClass(aPosition[index]);
+		/* 判断目标右侧是否可正常显示 ###优先右边显示### */
+		var isRight = SCREEN.width - rectLW - iMOffset > rWidth;
+		var isBottom = /* 下偏移量 */SCREEN.height - rectTH > rHeight;
+		var imHeight = this.iMarkHieght || (this.iMarkHieght = iM.attr(s_OFFSETHEIGHT));
+		mStyle.top = SPACE;
+		/* 下方显示 且 提示窗口高度 大于 iDialogMinHeight */
+		if (!this.position && isBottom && rHeight > iDialogMinHeight) {
+			index = 3;
+			top = rectTH + imHeight / 2;
+			rStyle.left = tRect.left;
+		} else {
+			top = tRect.top - rHeight - imHeight / 2;
+			left = isRight ? rectLW + iMOffset : tRect.left - rWidth;
+			if (top < 0 && (isRight || left > 0)) {
+				/* 左右方显示 */
+				index = isRight ? 2 : 0;
+				var targetTop = tRect.top - 10;
+				var roomTop = SCREEN.height - rHeight;
+				top = Math.min(targetTop, roomTop)
+				top < 0 && (top = 0);
+				mStyle.top = Math.abs(tRect.top - top) + tHeight / 2;
+			} else {
+				/* 上方显示 */
+				index = 1;
+				left = tRect.left;
+			}
+			rStyle.left = left;
+		}
+		this.index = index;
+		room.addClass(aPosition[index]);
+		rStyle.top = Math.max(top, 0);
+		/* 设置相关样式 */
+		iM.css(mStyle);
+		room.css(rStyle);
+	}
+	/**
+	 * 是否延迟运行
+	 * @param {Function} run 
+	 * @param {Number} slow 
+	 */
+	function iLazyRun(run, slow) {
+		return +slow ? setTimeout(run, slow) : iRuner(run);
+	}
 	//移除当前窗口
 	function iCurrent(dialog) {
 		var curr;
 		if (dialog) {
-			var count = Count;
+			var count = DialogCount;
 			while (count--) {
 				if (DialogsRanks[count] === dialog) {
 					DialogsRanks.splice(count, 1);
@@ -1308,16 +1583,7 @@
 			curr = DialogsRanks.pop();
 		}
 		if (curr) {
-			curr.cleartime();
-			curr.bg.stop(true, true).animate({
-				opacity: .1
-			}, 10);
-			curr.room.stop(true, true).animate({
-				top: '-=30px',
-				opacity: .5
-			}, 400, function () {
-				curr.destroy();
-			});
+			curr.destroy();
 		};
 	};
 
@@ -1328,53 +1594,55 @@
 		}
 	}
 	/**
-	 * 
-	 * @param {*} sel 
-	 * @param {*} context 
+	 * 获取DOM对象
+	 * @param {String|Query|Node} sel 
+	 * @param {String|Query|Node} context 
 	 */
 	function iQuery(sel, context) {
-		return new Query(sel, context)
+		return sel instanceof Query ? sel : new Query(sel, context);
 	}
 	// 新增事件监听
 	iQuery(window).resize(iUserWindowResize).keydown(function (e) {
 		if (e.keyCode === 27) iCurrent();
 	});
 
+	function iHtml(target, element) {
+		var unQuery = {};
+		unQuery.result = target instanceof Array ? target : [target];
+		return Query.prototype.html.call(unQuery, element);
+	}
 	var rExport = {
-		'attrs': iAttrs,
+		'is': iElementIs,
 		'css': iCss,
+		'each': each,
 		'attr': iAttr,
+		'html': iHtml,
+		'merge': merge,
+		'attrs': iAttrs,
+		'query': iQuery,
 		'Query': iQuery,
-		'showBox': iDialog,
 		'show': iDialog,
 		'list': Dialogs,
 		'runer': iRuner,
-		'merge': merge,
-		'between': between,
-		'each': each,
-		'isString': isString,
-		'resize': iUserWindowResize,
 		'picker': picker,
+		'showBox': iDialog,
+		'between': between,
+		'isString': isString,
 		'getline': pickVarLine,
-		'giveUHtmlBySelector': giveUHtmlBySelector,
+		'resize': iUserWindowResize,
 		'selector2Html': selector2Html,
-		'screen': function () {
-			return SCREEN;
-		},
-		'remove': function (di) {
-			iCurrent(di);
-		},
+		'giveUHtmlBySelector': giveUHtmlBySelector,
 		'confirm': function (title, content, callback, position) {
 			return this.auto(CONFIRM_HTML, function (id, dialog) {
-				// dialog.glass(true);
+				dialog.glass(true);
 				var room = dialog.room;
 				room.find('.confirm-title').html(title);
 				room.addClass('dialog-confirm').find('.confirm-content').html(content);
-				dialog.click('close', function (e) {
+				dialog.proxy(room.find('.confirm-cancel'), function () {
 					dialog.remove();
 					return false;
 				});
-				dialog.click('submit', function (e) {
+				dialog.proxy(room.find('.confirm-submit'), function (e) {
 					if (iRuner(callback, dialog.root, rExport, dialog, e)) {
 						dialog.remove();
 					}
@@ -1394,7 +1662,7 @@
 			return iDialog(giveUHtmlBySelector(msg), function (id, dialog) {
 				dialog.root.addClass('dialog-tips');
 				iRuner(init, dialog);
-				dialog.root.find('.content .close' + (time > 7 ? SPACE : ',.bg')).click(function () {
+				dialog.proxy(dialog.root.find('.content .close' + (time > 7 ? SPACE : ',.bg')), function () {
 					dialog.remove();
 				});
 			}, time, position || rExport.tips_position);
@@ -1407,38 +1675,53 @@
 		 */
 		'auto': function (mode, callback, args) {
 			var cs;
+			if (!isFunction(callback) && isNil(args)) {
+				args = callback;
+				callback = args && args.callback;
+			}
 			if (isString(args)) {
 				cs = args;
 				args = {};
 			} else {
 				args || (args = {});
-				cs = args.cs || SPACE;
+				cs = args.cs;
 			}
+			cs || (cs = s_AUTOATTRS);
 			var rainbox = iDialog(mode, function (id, dia) {
 				// 初始化
 				dia.runer(args.init, dia, id);
 				dia.runer(callback, this, id, dia);
+				/* 绑定数据关联 */
+				dia.bind();
 				// end
-				dia.runer(args.last, dia, id);
+				dia.runer([args.last, args.end], dia, id);
 				dia.onresize(resize);
 				return true;
-			});
+			}, Nil, args.position);
+			
+			rainbox.destroyConfig = args.destroy;
+
 			var rules = dialogAutoRules(cs.split(r_MULIT_SPLIT_SEP));
 			rules instanceof Array && rules.sort(function (a, b) {
 				return a.sort - b.sort
 			});
+			/*  */
+			args.destroy && isNil(args.center) && (args.center = false);
 			// 是否自由定位,非居中
 			rainbox.isFree = args.center === false || r_IsNotCenter.test(cs);
-			// 结束
-			resize.call(rainbox, true);
-
-			iRuner(args.end || function () {
-				iUserEventMap.auto.mix.animate(this, true);
-			}, rainbox);
+			var room = rainbox.room.hide();
+			iLazyRun(function () {
+				room.show();
+				// 结束
+				resize.call(rainbox, true);
+				iRuner(args.end || function () {
+					iUserEventMap.auto.mix.animate(this, true);
+				}, rainbox);
+			}, args.slow);
 
 			function resize(is1st) {
 				this.is1st = !!is1st;
-				var css4 = {}
+				var css4 = {};
 				each(rules, function (k, v, rMap, css4, house) {
 					if (!(v.value[0] instanceof Dialog)) {
 						v.value.unshift(house);
@@ -1454,6 +1737,32 @@
 				mix: {}
 			})).mix[attr] = val;
 			return this;
+		},
+		'remove': function (sel, listener) {
+			if (isString(sel)) {
+				iQuery(sel).each(function (_, v) {
+					var id = iAttr(v, 'id');
+					var sim = Dialogs[id];
+					sim && sim.remove();
+				}).remove();
+			} else iCurrent(sel);
+		},
+		'screen': function () {
+			return SCREEN;
+		},
+		'clazz': function (target, clazz, add) {
+			iClass(clazz, target, add === true ? add : Nil);
+		},
+		'addClass': function (target, clazz) {
+			iClass(clazz, target, true);
+		},
+		'removeClass': function (target, clazz) {
+			iClass(clazz, target);
+		},
+		'within': function (sel, target) {
+			var sim = target;
+			while (sim && iElementIs(sel, sim) == Nil) sim = sim.parentNode;
+			return sim;
 		}
 	};
 	// 窗口距容器的边距
@@ -1480,11 +1789,17 @@
 	}
 	var aOffsetList = [s_OFFSETWIDTH, s_OFFSETHEIGHT, s_OFFSETWIDTH, s_OFFSETHEIGHT];
 	// 计算内部布局
-	rExport.push(s_AUTO_KEY, 'inner', function (D, l, t, r, b, center, offset) {
-		var 
+	rExport.push(s_AUTO_KEY, 'inner', function (D, l, t, r, b, center, offset, isrezsize) {
+		var
 			room = D.room,
 			offsets;
+		if (/^(?:true|false)$/.test(offset)) {
+			isrezsize = offset;
+			offset = Nil;
+		}
+		var isUnRe = isrezsize != 'true';
 		if (!(offsets = room.inneroffset)) {
+			room.iDefaultPadding = {l: 0, t: 0, r: 0, b: 0};
 			offsets = room.inneroffset = {};
 			each([l, t, r, b], function (k, v, map, offsets, mk) {
 				if (isNumber(v)) {
@@ -1493,27 +1808,26 @@
 					var Q = room.find(v);
 					var padding = iPaddings(Q);
 					var margin = iMargins(Q);
-					offsets[mk[k]] = Q.length ? margin.t + margin.b + padding.t + padding.b + (Q.attr(map[k]) >> 0) : 0;
+					offsets[mk[k]] = Q.length ? (margin.t + margin.b + padding.t + padding.b + (Q.attr(map[k]) >> 0)) >> 0 : 0;
 				}
 			}, aOffsetList, offsets, 'l,t,r,b'.split(','));
 		}
-		var 
-			css 			= {},
-			paddings 		= iPaddings(room),
-			BODY 			= room.iINNER || (room.iINNER = room.find(center)),
+		
+		var
+			css = {},
+			paddings = iPaddings(room),
+			BODY = room.iINNER || (room.iINNER = room.find(center)),
+			paings = room.is(center) ? room.iDefaultPadding : iPaddings(BODY),
 			/* inner 滚动高度 */
-			cScrollHeight 	= BODY.attr(s_SCROLLHEIGHT) >> 0,
-			screenHeight 	= SCREEN.height - (offset >> 0),
-			screenWidth 	= SCREEN.width - (offset >> 0),
-			minWidth 		= room.minWidth || (room.minWidth = room.attr('scrollWidth') >> 0),
-			offsetY 		= offsets.t + offsets.b + paddings.t + paddings.b;
-
-		css.width = screenWidth > minWidth ? s_AUTO : screenWidth - paddings.l + paddings.r;
-		css.height = cScrollHeight + offsetY > screenHeight
-			?
-			Math.min(cScrollHeight, (this.height || screenHeight) - (offsetY))
-			:
-			s_AUTO;
+			cScrollHeight = BODY.attr(s_SCROLLHEIGHT) >> 0,
+			screenHeight = SCREEN.height - (offset >> 0),
+			screenWidth = SCREEN.width - (offset >> 0),
+			minWidth = /* room.minWidth ||  (room.minWidth = */room.attr('scrollWidth') >> 0/* ) */,
+			offsetY = offsets.t + offsets.b + paddings.t + paddings.b+ paings.t + paings.b,
+			iW = screenWidth - (paddings.l + paddings.r + offsets.l + offsets.r + paings.l + paings.r),
+			iH = (this.height || screenHeight) - offsetY;
+		css.width = screenWidth >= minWidth && isUnRe ? s_AUTO : iW;
+		css.height = cScrollHeight + offsetY > screenHeight ? Math.min(cScrollHeight, iH) : isUnRe ? s_AUTO : iH;
 		BODY.css(css);
 	});
 	// 设置居中
