@@ -46,24 +46,9 @@
  * Mix-time : 2023-01-07 00:22:22 子时
  */
 ```
-## **Each** 的用法
-
-```javascript
-dialog.each({ a: 1, b: 2 }, (k, v) => {
-  console.log(k, v);
-});
-// 输出:
-// a 1
-// b 2
-dialog.each([1, 2], (k, v) => {
-  console.log(k, v);
-});
-// 输出:
-// 0 1
-// 1 2
-```
 
 ---
+
 ## **Each** 的用法
 
 ```javascript
@@ -140,7 +125,9 @@ var data = dialog.picker(
 ```
 
 ---
+
 ## **Tips**
+
 ```javascript
 // 实例
 dialog.tips("show text", 3, {
@@ -150,6 +137,7 @@ dialog.tips("show text", 3, {
 ```
 
 ## **Auto** 的用法
+
 ```javascript
 // 实例1
 dialog.auto(
@@ -160,6 +148,7 @@ dialog.auto(
   "offset:10 10 10 90"
 );
 ```
+
 ```javascript
 // 实例2
 dialog.auto(
@@ -170,7 +159,9 @@ dialog.auto(
   "offset: 0 0 0 0"
 );
 ```
+
 ---
+
 ```javascript
 //关联窗口, 代码后续更新
 dialog.auto(
@@ -205,8 +196,11 @@ dialog.auto(
   "[top,bottom,center] [left,right,center]".on()
 );
 ```
+
 ---
+
 ## **截图**
+
 <img src="https://alwbg.github.io/static/0.jpeg" style="width:100%" />
 <img src="https://alwbg.github.io/static/1.png" style="width:100%" />
 <img src="https://alwbg.github.io/static/2.png" style="width:100%" />
