@@ -36,27 +36,27 @@
     </head>
     <body>
 		<!-- <div id="text" data-index="1" data-key="source" data-index-i="i" event-apple="1"  event-apple-i="1"></div> -->
-        <script src="../runjs/runjs.js">
+        <script src="//alwbg.github.io/runjs.js">
             //加载样式
             require('css/dialog.css');
             require.error = function() {
                 console.log(...arguments)
             }
             //加载dialog模块
-            var dialog = require('dialog');
+			var dialog = require('dialog');
             var position = ['center', 'left top', 'left bottom', 'right top', 'right bottom', 'center top', 'center bottom'];
 			function randomIndex(){
 				return position[((Math.random() * 100000) >> 0) % position.length]
 			}
-function times(fx, t){
-	var tmark = setInterval(function(){
-		if( --t < 0 ) {
-			return clearInterval(tmark);
-		}
-		dialog.runer(fx, null, t);
-	}, 1000);
-	return tmark;
-}
+			function times(fx, t){
+				var tmark = setInterval(function(){
+					if( --t < 0 ) {
+						return clearInterval(tmark);
+					}
+					dialog.runer(fx, null, t);
+				}, 1000);
+				return tmark;
+			}
 			var iHtml = '<span id="text" data-bind="aaaaa" data-index="1" data-key="source" data-index-i="i" event-apple="1" event-apple-i="1" e-dialog-handle="data">测试获取DATA</span>\
 			<span class="loadings" e-dialog-handle="loadings">Request Text!</span>\
 			<span class="in" e-dialog-handle="in">点击</span>\
@@ -147,6 +147,7 @@ function times(fx, t){
 			run();
 			var s = dialog.screen()
 		
+			dialog.tips('----------------------', 10000, 'center').remove()
             // dialog.tips( 'dialog.confirm已关闭...', 800, 'right top' ).addClass('error').onclose(run);
             /* dialog.auto( 'text', function( id ){
       }, 'animate:true +=20 -=20' ) */
