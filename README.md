@@ -277,22 +277,8 @@ dialog.auto(
 
 ## **截图**
 
-<style>
-  .graph{
-    /* display: flex */
-    background-color: #333333;
-    border-radius: 7px;
-    overflow: hidden
-  }
-  img{
-    width:calc(100% / 3);
-    /* height:apple; */
-    margin:0;
-
-  }
-</style>
-<div class="graph">
-<img src="https://alwbg.github.io/static/0.jpeg"/><img src="https://alwbg.github.io/static/1.png"/><img src="https://alwbg.github.io/static/2.png"/>
+<div class="graph" style="background-color: #333333;border-radius: 7px;overflow: hidden">
+<img src="https://alwbg.github.io/static/0.jpeg" style="width:calc(100% / 3);margin:0"/><img src="https://alwbg.github.io/static/1.png" style="width:calc(100% / 3);margin:0"/><img src="https://alwbg.github.io/static/2.png" style="width:calc(100% / 3);margin:0"/>
 </div>
 <!-- ![图片1](https://alwbg.github.io/static/0.jpeg) -->
 <!-- ![图片2](https://alwbg.github.io/static/1.png) -->
