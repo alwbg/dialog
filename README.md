@@ -1,5 +1,20 @@
 # **Dialog**.js
 
+## 线上示例 ⬆ 
+> #### Online
+> _[点击这里带你穿越](https://alwbg.github.io)_
+> - 多个实例应用融合
+>   - 时间
+>   - 天气
+>   - 弹窗
+>   - 单选
+>   - 多选
+>   - 开关
+>   - 时钟
+>   - ...
+
+---
+
 > **截图**
 
 <!-- <div class="graph" style="background-color: #333333;border-radius: 7px;overflow: hidden">
@@ -10,6 +25,7 @@
 | ----------------------------------------------- | ---------------------------------------------- | ---------------------------------------------- |
 
 > **注释**
+
 ```javascript
 /**
  * @autor alwbg@163.com | soei
@@ -217,21 +233,6 @@ dialog.auto(
     console.log(id, this);
   },
   {
-    /* 
-    offset
-      控制窗口的四个方向的边距
-      "offset: 左 上 右 下" 
-        取值: 数值|auto
-        auto: 根据自身高度或者宽度控制
-    inner
-      控制容器内部边距
-      "inner: 左 上 右 下 中 整体偏移量"
-      "inner: 10 10 10 10 .center 10"
-    animate
-      出场动画 自带满足不了需求时可设置配置或者重写
-      可以通过 dialog.push 添加和重写以上参数方法
-      dialog.push('auto', 'animate', function( current[, use,...]){} )
-    */
     cs: "offset:10 10 10 90;inner: 10 10 10 10 .center 10;animate: true +=50 -=50",
   }
 );
@@ -274,37 +275,177 @@ dialog.auto(
 );
 ```
 
----
-
-## **String**新增方法
+> ## _auto_
+>
+> > _[参见 dialog.render ](#render)_ <pre>已集成已集成 dialog.render </pre>
+>
+> - ### _last_ {_Function_}
+> - ### _cs_ {_String_} 配置
+>   - #### offset
+>     > #### 控制窗口的四个方向的边距
+>     - 书写规则
+>        <pre>"offset: 左 上 右 下"</pre>
+>     - 取值
+>       <pre>offset: [数值|auto] [数值|auto] [数值|auto] [数值|auto]</pre>
+>       <pre>auto: 根据自身高度或者宽度控制</pre>
+>   - #### inner
+>     > #### 控制容器内部边距
+>     - 书写规则
+>       <pre>"inner: 左 上 右 下 中 整体偏移量"</pre>
+>     - 取值
+>       <pre>"inner: 10 10 10 10 .center 10"</pre>
+>   - #### animate
+>     > #### 出场动画 自带满足不了需求时可设置配置或者重写
+>     - 覆盖
+>       <pre>可以通过 dialog.push 添加和重写以上参数方法</pre>
+>     - 替换
+>        <pre>dialog.push('auto', 'animate', function( current[, use,...]){} )</pre>
+>   - center
+> - ### _destroy_
+>   - 窗口销毁是执行的动画配置(非必要参数)
+>     > <pre>destroy: {css: {top: '+=30px', opacity: 0}, speed: 400}</pre>
+> - ### _center_
+> - ### _end_
+>   ***
 
 ```javascript
-// '...'.['format', 'on'];
-"name: ? age: ? color: ? from: ?".on("tom", "2", "blue", "USA");
-// 输出: 'name: tom age: 2 color: blue from: USA'
-"name: ? age: ? color: ? from: ?".on({
-  name: "tom",
-  age: "2",
-  color: "blue",
-  from: "USA",
-});
-// 输出: 'name: tom age: 2 color: blue from: USA'
-```
-> **render**
-```javascript
-dialog.render('{{show}}+.confirm-cancel.close[:onclick="close"]{×}',{
+dialog.auto(
+  {
+    mode: '{{count}}+.confirm-cancel.close[:onclick="close"]{×}',
     data: {
-      show: 1,
+      count: 1,
     },
     events: {
       close() {
         this._dialog.remove();
       },
-    }
-})
+    },
+  },
+  {
+    last() {
+      console.log(this);
+    },
+    cs: "offset:10 10 10 90;inner: 10 10 10 10 .center 10;animate: true +=50 -=50",
+  }
+);
 ```
+
+---
+
+## **String** 新增方法
+
+> _on_ 的基本用法
+>
+> - _'{attr}'.\[ 'format', 'on' \]( args1 );_
+> - _'? ? ? ? '.\[ 'format', 'on' \]( args1, args2, ... );_
+
+```javascript
+"name: ? age: ? color: ? from: ?".on("tom", "2", "blue", "小漂亮国");
+// 输出: 'name: tom age: 2 color: blue from: 小漂亮国'
+```
+
+```javascript
+"name: ? age: ? color: ? from: ?".on("未知");
+// 输出: 'name: 未知 age: 未知 color: 未知 from: 未知'
+```
+
+```javascript
+"{name} 是个男孩.".on({ name: "小明" });
+// '小明是个男孩.'
+```
+
+```javascript
+"name: ? age: ? color: ? from: ?".on({
+  name: "tom",
+  age: "2",
+  color: "blue",
+  from: "小漂亮国",
+});
+// 输出: 'name: tom age: 2 color: blue from: 小漂亮国'
+```
+
+> _on_ 中的随机用法
+
+```javascript
+// '...'.['format', 'on'];
+"[red,green,blue,yellow]".on();
+// 随机输出: 'green'
+```
+
+> _on_ 中的 _三元运算_ 用法 _{expr,true,false}_
+
+```javascript
+"{name,name,age}".on({
+  name: "",
+  age: 1,
+});
+// 输出: 1
+```
+
+```javascript
+"{name>2,+name + 2, +age - 1}".on({
+  name: "3",
+  age: 1,
+});
+// '5'
+```
+
+```javascript
+"{name>2,+name + 2, +age - 1}".on({
+  name: "2",
+  age: 1,
+});
+// '0'
+```
+
+> _on_ 中的 _区间随机_ 用法
+
+```javascript
+"{99-999}".on();
+// 随机输出: '610'
+```
+
+```javascript
+"{100-999}-{100-999}-{100-999}-{100-999}".on();
+// 输出: '298-768-285-212'
+```
+
+> _on_ 中的 _属性_ 用法
+
+```javascript
+"{now}".on();
+// 输出: 当前毫秒值
+```
+
+```javascript
+"{fx} is in!".on({
+  fx: () => {
+    return "string";
+  },
+});
+// 'string is in!'
+```
+
+> ## **Render**
+> - 源码待上传  _[参见线上实例 ](#online)_ 
+> - ...
+
+```javascript
+dialog.render('{{show}}+.confirm-cancel.close[:onclick="close"]{×}', {
+  data: {
+    show: 1,
+  },
+  events: {
+    close() {
+      this._dialog.remove();
+    },
+  },
+});
+```
+
 > 相关截图
 
 | ![render.code.1.jpg](https://alwbg.github.io/static/render.code.1.jpg) | ![render.code.2.jpg](https://alwbg.github.io/static/render.code.2.jpg) |
-| --- | --- |
+| ---------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+
 > **待续**
