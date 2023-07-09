@@ -111,7 +111,7 @@ var Query = dialog.query('div.selector[title="title"]{这里是内容}', true);
 // 创建Query对象
 Query{
   0: HTMLDivElement{ /* 这里是DOM对象 */
-    class: '.selector',
+    class: 'selector',
     attributes: {
       title: 'title'
     },
