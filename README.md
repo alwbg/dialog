@@ -1,5 +1,15 @@
 # **Dialog**.js
 
+> **截图**
+
+<!-- <div class="graph" style="background-color: #333333;border-radius: 7px;overflow: hidden">
+<img src="https://alwbg.github.io/static/0.jpeg" style="width:calc(100% / 3);margin:0"/><img src="https://alwbg.github.io/static/1.png" style="width:calc(100% / 3);margin:0"/><img src="https://alwbg.github.io/static/2.png" style="width:calc(100% / 3);margin:0"/>
+</div> -->
+
+| ![图片1](https://alwbg.github.io/static/0.jpeg) | ![图片2](https://alwbg.github.io/static/1.png) | ![图片3](https://alwbg.github.io/static/2.png) |
+| ----------------------------------------------- | ---------------------------------------------- | ---------------------------------------------- |
+
+> **注释**
 ```javascript
 /**
  * @autor alwbg@163.com | soei
@@ -49,8 +59,10 @@
 
 ## **Query**
 
-### 查找 **DOM** 对象并执行相关操作
+> 查找 **DOM** 对象并执行相关操作
+
 #### :: **HTML**相关用例
+
 ```html
 <div class="windows">
   <div>
@@ -60,7 +72,9 @@
   <div class="selector">...</div>
 </div>
 ```
-### **实例**
+
+> **实例**
+
 ```javascript
 var Query = dialog.query(".selector", ".windows");
 // stop, animate
@@ -70,7 +84,8 @@ Query.stop(true, true).animate({
 // 查询.windows下的.selector的所有dom 并执行动画,执行内容:高度增量100,在自有的高度增加100
 ```
 
-### 通过**伪css**语法生成**Query**实例
+> 通过**伪 css**语法生成**Query**实例
+
 ```javascript
 var Query = dialog.query('div.selector[title="title"]{这里是内容}', true);
 
@@ -111,7 +126,7 @@ dialog.each([1, 2], (k, v) => {
 
 ## **Picker** 的用法
 
-### :: 用法一
+> :: 用法一
 
 ```javascript
 // 别名输出
@@ -128,7 +143,7 @@ var data = dialog.picker(
 // data输出 {abc: 'd'} data.e = undefined 不包含e
 ```
 
-### :: 用法二
+> :: 用法二
 
 ```javascript
 // 模糊输出 *=>*
@@ -146,7 +161,7 @@ var data = dialog.picker(
 // data输出 {c: 'd', e: 'e'}
 ```
 
-### :: 用法三
+> :: 用法三
 
 ```javascript
 // 多查询"|", 优先级和顺序相关[1|2|3]
@@ -174,13 +189,13 @@ var data = dialog.picker(
 dialog.tips("show text", 3, {
   target: "目标DOM",
   //#显示规则, 优先级,具体显示以显示空间为主,四个方向都显示不了,居中显示
-  positon: "left,top,bottom,right", 
+  positon: "left,top,bottom,right",
 });
 ```
 
 ## **Auto** 的用法
 
-### - 写法一
+> - 写法一
 
 ```javascript
 dialog.auto(
@@ -193,7 +208,7 @@ dialog.auto(
 );
 ```
 
-### - 写法二
+> - 写法二
 
 ```javascript
 dialog.auto(
@@ -222,7 +237,7 @@ dialog.auto(
 );
 ```
 
-### - 写法三
+> - 写法三
 
 ```javascript
 //关联窗口, 代码后续更新
@@ -260,26 +275,36 @@ dialog.auto(
 ```
 
 ---
+
 ## **String**新增方法
 
 ```javascript
 // '...'.['format', 'on'];
-'name: ? age: ? color: ? from: ?'.on('tom', '2', 'blue', 'USA');
+"name: ? age: ? color: ? from: ?".on("tom", "2", "blue", "USA");
 // 输出: 'name: tom age: 2 color: blue from: USA'
-'name: ? age: ? color: ? from: ?'.on({
-  name: 'tom',
-  age: '2',
-  color: 'blue',
-  from: 'USA'
+"name: ? age: ? color: ? from: ?".on({
+  name: "tom",
+  age: "2",
+  color: "blue",
+  from: "USA",
 });
 // 输出: 'name: tom age: 2 color: blue from: USA'
 ```
+> **render**
+```javascript
+dialog.render('{{show}}+.confirm-cancel.close[:onclick="close"]{×}',{
+    data: {
+      show: 1,
+    },
+    events: {
+      close() {
+        this._dialog.remove();
+      },
+    }
+})
+```
+> 相关截图
 
-## **截图**
-
-<div class="graph" style="background-color: #333333;border-radius: 7px;overflow: hidden">
-<img src="https://alwbg.github.io/static/0.jpeg" style="width:calc(100% / 3);margin:0"/><img src="https://alwbg.github.io/static/1.png" style="width:calc(100% / 3);margin:0"/><img src="https://alwbg.github.io/static/2.png" style="width:calc(100% / 3);margin:0"/>
-</div>
-<!-- ![图片1](https://alwbg.github.io/static/0.jpeg) -->
-<!-- ![图片2](https://alwbg.github.io/static/1.png) -->
-<!-- ![图片3](https://alwbg.github.io/static/2.png) -->
+| ![render.code.1.jpg](https://alwbg.github.io/static/render.code.1.jpg) | ![render.code.2.jpg](https://alwbg.github.io/static/render.code.2.jpg) |
+| --- | --- |
+> **待续**
