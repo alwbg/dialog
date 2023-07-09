@@ -1,8 +1,11 @@
 # **Dialog**.js
 
 ## [线上示例](https://alwbg.github.io) ☟
+
 > #### Online
+>
 > _[点击这里带你穿越](https://alwbg.github.io)_
+>
 > - 多个实例应用融合
 >   - 时间
 >   - 天气
@@ -119,8 +122,6 @@ Query{
 
 ```
 
----
-
 ## **Each** 的用法
 
 ```javascript
@@ -137,8 +138,6 @@ dialog.each([1, 2], (k, v) => {
 // 0 1
 // 1 2
 ```
-
----
 
 ## **Picker** 的用法
 
@@ -195,8 +194,6 @@ var data = dialog.picker(
 );
 // data输出 {c: 'd'}
 ```
-
----
 
 ## **Tips**
 
@@ -275,8 +272,8 @@ dialog.auto(
 );
 ```
 
-> ## _auto_
->
+## **auto**
+
 > > _[参见 dialog.render ](#render)_ <pre>已集成已集成 dialog.render </pre>
 >
 > - ### _last_ {_Function_}
@@ -334,7 +331,7 @@ dialog.auto(
 
 ## **String** 新增方法
 
-> _on_ 的基本用法
+> on 的基本用法
 >
 > - _'{attr}'.\[ 'format', 'on' \]( args1 );_
 > - _'? ? ? ? '.\[ 'format', 'on' \]( args1, args2, ... );_
@@ -364,7 +361,7 @@ dialog.auto(
 // 输出: 'name: tom age: 2 color: blue from: 小漂亮国'
 ```
 
-> _on_ 中的随机用法
+> **on** 中的随机用法
 
 ```javascript
 // '...'.['format', 'on'];
@@ -372,7 +369,7 @@ dialog.auto(
 // 随机输出: 'green'
 ```
 
-> _on_ 中的 _三元运算_ 用法 _{expr,true,false}_
+> **on** 中的 _三元运算_ 用法 _{expr,true,false}_
 
 ```javascript
 "{name,name,age}".on({
@@ -398,7 +395,7 @@ dialog.auto(
 // '0'
 ```
 
-> _on_ 中的 _区间随机_ 用法
+> **on** 中的 _区间随机_ 用法
 
 ```javascript
 "{99-999}".on();
@@ -410,7 +407,7 @@ dialog.auto(
 // 输出: '298-768-285-212'
 ```
 
-> _on_ 中的 _属性_ 用法
+> **on** 中的 _属性_ 用法
 
 ```javascript
 "{now}".on();
@@ -426,8 +423,24 @@ dialog.auto(
 // 'string is in!'
 ```
 
-> ## **Render**
-> - 源码待上传  _[参见线上实例 ](#online)_ 
+> **_buildHtml_** 的用法
+
+```javascript
+`div.selector[title="title"]{内容}>.inner{子节点}`.buildHtml();
+```
+
+> ### **输出结果**
+
+```html
+<div class="selector" title="title">
+  内容
+  <span class="inner"> 子节点 </span>
+</div>
+```
+
+## **Render**
+
+> - 源码待上传 _[参见线上实例 ](#online)_
 > - ...
 
 ```javascript
