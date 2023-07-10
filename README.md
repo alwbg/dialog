@@ -76,6 +76,134 @@
  */
 ```
 
+## **Merge**
+
+> _merge(args1, args2[,..., true, "mix"])_ <br>
+> 合并
+
+### 用法一
+
+> 基本用法 <br> > _merge(args1, args2)_
+
+```javascript
+let a = { name: "Joy" };
+let b = { name: "Band", age: 10 };
+dialog.merge(a, b);
+// a : {name: 'Joy', age: 10}
+// b : {name: 'Band', age: 10}
+```
+
+### 用法二
+
+> 强制覆盖<br> _merge(args1, args2, args3, true)_
+>
+> - _args1_, _args2_ 为接收方<br/>
+> - args3 为属性输出方
+
+```javascript
+let a = { name: "Joy" };
+let b = { name: "Band", age: 10 };
+let c = { name: "Juerry" };
+// 这里以 c 为模版, 把 c 中的属性强制覆盖到 前面的一个或者多个对象中去
+dialog.merge(a, b, c, true);
+// a, b为接收方
+// a : {name: 'Juerry'}
+// b : {name: 'Juerry', age: 10}
+// c : {name: 'Juerry'}
+```
+
+### 用法三
+
+> 多参数 <br> _merge(args1, args2, args3)_
+>
+> - _args1_, _args2_ 为接收方
+> - args3 为属性输出方
+
+```javascript
+let a = { name: "Joy" };
+let b = { name: "Band", age: 10 };
+dialog.merge(a, b, {
+  age: 11,
+});
+// a, b为接收方
+// a : {name: 'Joy', age: 11}
+// b : {name: 'Band', age: 10}
+```
+
+### 用法四
+
+> _merge(args1, args2[,...], "mix")_
+>
+> - _末尾参数为 "mix" 时, args1 为接收方, 其他参数均为属性输出方_
+
+```javascript
+let a = { name: "Joy" };
+let b = { name: "Band" };
+let c = { name: "Juerry", age: 10 };
+// 参数1, 参数2
+dialog.merge(a, b, c, "mix");
+// a为接收方 b, c为属性输出方
+// a: { name: 'Joy', age: 10 }
+// b: { name: 'Band' }
+// c: { name: "Juerry", age: 10 }
+```
+
+### 用法五
+
+> _merge(args1, args2[,...], true, "mix")_
+>
+> - true 和 mix 的混合使用 <br>
+>   最终属性值取决于最后一次出现的属性
+
+```javascript
+let a = { name: "Joy" };
+let b = { name: "Band" };
+let c = { name: "Juerry", age: 11 };
+dialog.merge(a, b, c, true, "mix");
+// a为接收方 b, c为属性输出方
+// a: {name: 'Juerry', age: 11}
+// b: {name: 'Band'}
+// c: {name: 'Juerry', age: 11}
+```
+
+## **Runer**
+
+用法一
+
+> 已知方法
+
+```javascript
+var app = {
+  fx: function (c) {
+    return (this.a + this.b + c) >> 0;
+  },
+};
+var result = dialog.runer(
+  app.fx,
+  {
+    a: 1,
+    b: 2,
+  },
+  6
+);
+// result: 9
+```
+
+用法二
+
+> 调用未知方法
+>
+> - app.fx 如果存在且为 _Function_ 则执行, 否则返回 undefined
+> - dialog.picker [参见这里](#picker)
+
+```javascript
+var result = dialog.runer(dialog.picker(window, "app.fx=>exec").exec, {
+  a: 1,
+  b: 2,
+});
+// result: undefined
+```
+
 ## **Query**
 
 > 查找 **DOM** 对象并执行相关操作
@@ -139,7 +267,7 @@ dialog.each([1, 2], (k, v) => {
 // 1 2
 ```
 
-## **Picker** 的用法
+## **Picker**
 
 > :: 用法一
 
@@ -274,7 +402,7 @@ dialog.auto(
 
 ## **auto**
 
-> > _[参见 dialog.render ](#render)_ <pre>已集成已集成 dialog.render </pre>
+> > _[参见 dialog.render ](#render)_ <pre>已集成 dialog.render </pre>
 >
 > - ### _last_ {_Function_}
 > - ### _cs_ {_String_} 配置
@@ -419,6 +547,10 @@ dialog.auto(
   fx: () => {
     return "string";
   },
+});
+// 'string is in!'
+"{fx} is in!".on({
+  fx: "string",
 });
 // 'string is in!'
 ```
