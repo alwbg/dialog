@@ -474,7 +474,10 @@ query.trigger("click");
 > 获取 _input_ 的值
 
 ```javascript
-query.append("<span>inner</span>");
+/* 设置input|textarea的属性 value值 */
+query.val("123");
+/* 获取input|textarea的属性 value值 */
+query.val();
 ```
 
 ### _**off()**_
