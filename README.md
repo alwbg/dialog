@@ -18,6 +18,21 @@
 
 ---
 
+## **目录**
+
+- [merge](#merge)
+- [query](#query)
+- [render](#render)
+- [auto](#auto)
+- [tips](#tips)
+- [each](#each)
+- [picker](#picker)
+- [runer](#runer)
+- [confirm](#confirm)
+- [destroy](#destroydialog)
+
+---
+
 > **截图**
 
 <!-- <div class="graph" style="background-color: #333333;border-radius: 7px;overflow: hidden">
@@ -76,14 +91,16 @@
  */
 ```
 
-## **Merge**
+## **merge**
 
 > _merge(args1, args2[,..., true, "mix"])_ <br>
 > 合并
 
 ### 用法一
 
-> 基本用法 <br> > _merge(args1, args2)_
+> 基本用法
+>
+> _merge(args1, args2)_
 
 ```javascript
 let a = { name: "Joy" };
@@ -95,7 +112,9 @@ dialog.merge(a, b);
 
 ### 用法二
 
-> 强制覆盖<br> _merge(args1, args2, args3, true)_
+> 强制覆盖
+>
+> _merge(args1, args2, args3, true)_
 >
 > - _args1_, _args2_ 为接收方<br/>
 > - args3 为属性输出方
@@ -166,7 +185,7 @@ dialog.merge(a, b, c, true, "mix");
 // c: {name: 'Juerry', age: 11}
 ```
 
-## **Runer**
+## **runer**
 
 用法一
 
@@ -204,9 +223,310 @@ var result = dialog.runer(dialog.picker(window, "app.fx=>exec").exec, {
 // result: undefined
 ```
 
-## **Query**
+## **query**
 
 > 查找 **DOM** 对象并执行相关操作
+>
+> 以下没有声明 _query_ 的视为 _dialog.query('.windows')_ 的简写
+
+### _**on**('eventName', handle)_
+
+```javascript
+// 事件绑定
+query.on("click", (e) => {});
+```
+
+### _**html**([element|stringHtml]?)_
+
+```javascript
+// 设置
+query.html("设置内容!");
+// 设置
+query.html("<span>设置内容!</span>");
+// 获取
+var html = query.html();
+```
+
+### _**next**()_
+
+> _获取所对应的下一个 element_
+
+```javascript
+var next = query.next();
+```
+
+### _**prev()**_
+
+> _获取所对应的上一个 element_
+
+```javascript
+var prev = query.prev();
+```
+
+### _**first()**_
+
+> _获取第一个 element_
+
+```javascript
+var first = query.first();
+```
+
+### _**unbind(handle?)**_
+
+> _解绑事件_ [参见 off](#off)
+
+```javascript
+// 清楚全部
+query.unbind();
+// 清楚click
+query.unbind("click");
+// 清楚单个
+query.unbind(() => {});
+```
+
+### _**is(selector?)**_
+
+> _获取所对应的 element_
+>
+> - 返回值: Boolean
+
+```javascript
+var _isSpan = query.is("span");
+```
+
+### _**appendTo([Element|selector])**_
+
+> _将目标元素当做子类添加到指定的容器中_
+
+```javascript
+var next = query.appendTo("body");
+```
+
+### _**append()**_
+
+> _给目标元素增加子类_
+>
+> append([Element|selector|StringHtml])
+
+- 如果参数不含有"...\<tag>..."则视为在当前 document 下查询相关节点后, 添加到目标元素中<br>
+  ```javascript
+  query.append(".window");
+  ```
+  查找.windows 的所有元素,将结果追加到 body 下
+- 如果参数为"...\<tag>..."结构
+  ```javascript
+  query.append("<span>inner</span>");
+  ```
+  为 body 添加子节点\<span\>inner\</span>
+
+### _**insert(**)_
+
+> 把目标对象添加到指定位置
+>
+> - query.insert('.windows'[, true|false])
+> - true 目标对象后面, false 和默认不填是添加之前
+
+```javascript
+let query = dialog.query("<div>new</div>");
+query.insert(".windows", true /* 目标对象被添加到第一个参数对应的DOM后面 */);
+```
+
+### _**stop()**_
+
+> stop(isStopAll, isToEnd);
+>
+> - isStopAll 是否停止所有动画
+> - isToEnd 是否执行完成设置样式
+
+```javascript
+query.stop(true, false);
+```
+
+### _**attr()**_
+
+> - attr(attributes);
+> - attr(attribute, val);
+
+```javascript
+/* 获取 */
+query.attr("offsetHeight");
+// {offsetHeight: 835}
+query.attr("offsetHeight=>h,offsetWidth=>w");
+// {h: 835, w: 510}
+
+/* 设置 */
+query.attr({
+  "data-name": "jerry",
+  "data-age": "12",
+});
+```
+
+### _**css()**_
+
+> - css(attributes);
+> - css(attribute, val);
+> - css(multistringattribute, 'number');
+
+```javascript
+/*** 设置 ***/
+// 单个属性
+query.css("height", 200);
+// 多个属性
+query.css({
+  height: "+=200",
+  width: "-=100",
+});
+/***获取数值 ***/
+query.css("height,width", "number");
+// {height: 821, width: 490}
+query.css("height=>h,width=>w", "number");
+// {h: 821, w: 490}
+query.css("height=>h,width=>w");
+// {h: '821px', w: '490px'}
+query.css("line-height|height=>h,width=>w");
+// {h: 'normal', w: '490px'}
+query.css("line-height|height=>h,width=>w", "number");
+// {w: 490}
+```
+
+### _**find()**_
+
+> find(_selectors_);
+>
+> - selectors: 多个 className 之间用逗号 [,] 分隔
+
+```javascript
+var items = query.find(".selector");
+```
+
+### _**addClass()**_
+
+> addClass('className1 className2 className...');
+>
+> - 多个 className 之间用空格分隔
+
+```javascript
+query.addClass("className1 className2");
+```
+
+### _**removeClass()**_
+
+> removeClass('className1 className2 className...');
+>
+> - 多个 className 之间用空格分隔
+
+```javascript
+query.removeClass("className1 className2");
+```
+
+### _**remove()**_
+
+> 删除目标 Dom
+
+```javascript
+query.remove();
+```
+
+### _**data()**_
+
+```javascript
+// 这里设置属性
+dialog.attr({ "e-a": 1, "e-d": 3 });
+
+/* 这里获取的是所有的以 e-开头的所有属性 */
+query.data(null, "e");
+// {dialog: '20160590', a: '1', d: '3'}
+
+/* 获取 data-* 属性 等价于 query.data(null, "data"); */
+query.data();
+```
+
+### _**animate()**_
+
+> 执行动画
+>
+> - 0=>attributes,
+> - 1.speed|1=>speed,
+> - 1.easing=>easing,
+> - callback|2=>callback
+>
+> [参见 picker](#picker)
+>
+> 这里的 0, 1, 2 为 animate(args0, args1, args2)参数索引
+
+```javascript
+query.stop(true, true).animate({
+  height: "+=100",
+});
+// 执行动画,执行内容:高度增量100,在自有的高度增加100
+```
+
+### _**trigger()**_
+
+> 触发事件
+
+```javascript
+query.trigger("click");
+```
+
+### _**val()**_
+
+> 获取 _input_ 的值
+
+```javascript
+query.append("<span>inner</span>");
+```
+
+### _**off()**_
+
+> 解绑事件
+>
+> - query.off(String|Function)
+
+```javascript
+query.off("click");
+query.off();
+```
+
+### _**hide()**_
+
+> 隐藏目标对象
+
+```javascript
+query.hide();
+```
+
+### _**show()**_
+
+> 显示目标对象
+
+```javascript
+query.show();
+```
+
+### **事件**
+
+- [events]
+  - [resize, click, focus, blur, change, scroll, load, hashchange, error]
+  - /_PC 端相关_/
+    - [mousedown, mouseenter, mouseleave, mousemove, mouseout, mouseover, mouseup, mousewheel, keydown, keypress, keyup]
+  - /_移动端相关_/
+    - [touchcancel, touchend, touchmove, touchstart]
+  - /_html5 相关_/
+    - [animationend, animationiteration, animationstart]
+
+```javascript
+query["eventname"](() => {
+  // 处理逻辑
+});
+// 相当于
+query.on("eventname", () => {
+  // 处理逻辑
+});
+query.off("eventname");
+```
+
+---
 
 #### :: **HTML**相关用例
 
@@ -250,7 +570,7 @@ Query{
 
 ```
 
-## **Each** 的用法
+## **each**
 
 ```javascript
 dialog.each({ a: 1, b: 2 }, (k, v) => {
@@ -267,7 +587,7 @@ dialog.each([1, 2], (k, v) => {
 // 1 2
 ```
 
-## **Picker**
+## **picker**
 
 > :: 用法一
 
@@ -323,7 +643,9 @@ var data = dialog.picker(
 // data输出 {c: 'd'}
 ```
 
-## **Tips**
+## **tips**
+
+> 提示
 
 ```javascript
 // 实例
@@ -334,7 +656,95 @@ dialog.tips("show text", 3, {
 });
 ```
 
-## **Auto** 的用法
+## **notice**
+
+> 提示, 色彩区分 [参见 tips](#tips)
+
+```javascript
+// 实例
+dialog.notice("show text", 3, {
+  target: "目标DOM",
+  //#显示规则, 优先级,具体显示以显示空间为主,四个方向都显示不了,居中显示
+  positon: "left,top,bottom,right",
+});
+```
+
+## **error**
+
+> 错误, 色彩区分 [参见 tips](#tips)
+
+```javascript
+// 实例
+dialog.error("show text", 3, {
+  target: "目标DOM",
+  //#显示规则, 优先级,具体显示以显示空间为主,四个方向都显示不了,居中显示
+  positon: "left,top,bottom,right",
+});
+```
+
+## **auto**
+
+> > _[参见 dialog.render ](#render)_ <pre>已集成 dialog.render </pre>
+>
+> - ### _last_ {_Function_}
+> - ### _cs_ {_String_} 配置
+>   - #### offset
+>     > #### 控制窗口的四个方向的边距
+>     - 书写规则
+>        <pre>"offset: 左 上 右 下"</pre>
+>     - 取值
+>       <pre>offset: [数值|auto] [数值|auto] [数值|auto] [数值|auto]</pre>
+>       <pre>auto: 根据自身高度或者宽度控制</pre>
+>   - #### inner
+>     > #### 控制容器内部边距
+>     - 书写规则
+>       <pre>"inner: 左 上 右 下 中 整体偏移量"</pre>
+>     - 取值
+>       <pre>"inner: 10 10 10 10 .center 10"</pre>
+>   - #### animate
+>     > #### 出场动画 自带满足不了需求时可设置配置或者重写
+>     - 覆盖
+>       <pre>可以通过 dialog.push 添加和重写以上参数方法</pre>
+>     - 替换
+>        <pre>dialog.push('auto', 'animate', function( current[, use,...]){} )</pre>
+>   - center
+> - ### _destroy_
+>   - 窗口销毁是执行的动画配置(非必要参数)
+>     > <pre>destroy: {css: {top: '+=30px', opacity: 0}, speed: 400}</pre>
+> - ### _center_
+> - ### _end_
+> - ### position
+>   ```javascript
+>    /**
+>    * positon是设置窗口出现的位置
+>    * - left right 和 top bottom 和 center两两组合不分顺序
+>    * - 但是入场动画和第一个出现的位置相关 center除外
+>    **/
+>    position: "right center",
+>   ```
+>   ***
+
+```javascript
+dialog.auto(
+  {
+    mode: '{{count}}+.confirm-cancel.close[:onclick="close"]{×}',
+    data: {
+      count: 1,
+    },
+    events: {
+      close() {
+        this._dialog.remove();
+      },
+    },
+  },
+  {
+    last() {
+      console.log(this);
+    },
+    cs: "offset:10 10 10 90;inner: 10 10 10 10 .center 10;animate: true +=50 -=50",
+  }
+);
+```
 
 > - 写法一
 
@@ -400,62 +810,47 @@ dialog.auto(
 );
 ```
 
-## **auto**
+## **confirm**
 
-> > _[参见 dialog.render ](#render)_ <pre>已集成 dialog.render </pre>
+> 模式窗口
 >
-> - ### _last_ {_Function_}
-> - ### _cs_ {_String_} 配置
->   - #### offset
->     > #### 控制窗口的四个方向的边距
->     - 书写规则
->        <pre>"offset: 左 上 右 下"</pre>
->     - 取值
->       <pre>offset: [数值|auto] [数值|auto] [数值|auto] [数值|auto]</pre>
->       <pre>auto: 根据自身高度或者宽度控制</pre>
->   - #### inner
->     > #### 控制容器内部边距
->     - 书写规则
->       <pre>"inner: 左 上 右 下 中 整体偏移量"</pre>
->     - 取值
->       <pre>"inner: 10 10 10 10 .center 10"</pre>
->   - #### animate
->     > #### 出场动画 自带满足不了需求时可设置配置或者重写
->     - 覆盖
->       <pre>可以通过 dialog.push 添加和重写以上参数方法</pre>
->     - 替换
->        <pre>dialog.push('auto', 'animate', function( current[, use,...]){} )</pre>
->   - center
-> - ### _destroy_
->   - 窗口销毁是执行的动画配置(非必要参数)
->     > <pre>destroy: {css: {top: '+=30px', opacity: 0}, speed: 400}</pre>
-> - ### _center_
-> - ### _end_
->   ***
+> ```javascript
+> dialog.confirm(title, content, back, position);
+> ```
+>
+> [参见 auto](#auto)
 
 ```javascript
-dialog.auto(
-  {
-    mode: '{{count}}+.confirm-cancel.close[:onclick="close"]{×}',
-    data: {
-      count: 1,
-    },
-    events: {
-      close() {
-        this._dialog.remove();
-      },
-    },
+dialog.confirm(
+  "提示!",
+  '(({这里是}+[data-text="内容"]+{~~}))'.buildHtml(),
+  () => {
+    // 这里写窗口内的所需验证的逻辑
+    // ...
+    /* 当返回 为 true时窗口关闭 */
+    return true;
   },
   {
-    last() {
-      console.log(this);
-    },
-    cs: "offset:10 10 10 90;inner: 10 10 10 10 .center 10;animate: true +=50 -=50",
+    /**
+     * positon是设置窗口出现的位置
+     * - left right 和 top bottom 和 center两两组合不分顺序
+     * - 但是入场动画和第一个出现的位置相关
+     **/
+    position: "right center",
   }
 );
 ```
 
----
+## **destroy**(Dialog)
+
+> 销毁创建的窗口对象
+>
+> - 这个参数为 dialog[auto|tips|notice|error|confirm,...]返回值
+
+```javascript
+var tips = dialog.tips("ok!", 3);
+dialog.destroy(tips);
+```
 
 ## **String** 新增方法
 
