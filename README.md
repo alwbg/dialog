@@ -370,7 +370,7 @@ query.attr({
 ```javascript
 /*** 设置 ***/
 // 单个属性
-query.css("height", 200);
+query.css("height", 300);
 // 多个属性
 query.css({
   height: "+=200",
@@ -378,11 +378,11 @@ query.css({
 });
 /***获取数值 ***/
 query.css("height,width", "number");
-// {height: 821, width: 490}
+// {height: 500, width: 490}
 query.css("height=>h,width=>w", "number");
-// {h: 821, w: 490}
+// {h: 500, w: 490}
 query.css("height=>h,width=>w");
-// {h: '821px', w: '490px'}
+// {h: '500px', w: '490px'}
 query.css("line-height|height=>h,width=>w");
 // {h: 'normal', w: '490px'}
 query.css("line-height|height=>h,width=>w", "number");
@@ -431,7 +431,7 @@ query.remove();
 
 ```javascript
 // 这里设置属性
-dialog.attr({ "e-a": 1, "e-d": 3 });
+query.attr({ "e-a": 1, "e-d": 3 });
 
 /* 这里获取的是所有的以 e-开头的所有属性 */
 query.data(null, "e");
